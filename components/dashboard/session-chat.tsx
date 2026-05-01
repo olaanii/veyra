@@ -95,7 +95,7 @@ export function SessionChat({ session, initialMessages, userId }: Props) {
   // Persist user messages to Supabase when appended
   const handleSend = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!input.trim() || status === 'streaming') return
+    if (!input || !input.trim() || status === 'streaming') return
     const supabase = createClient()
     await supabase.from('messages').insert({
       session_id: session.id,

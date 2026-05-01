@@ -118,7 +118,7 @@ export function SessionsList({ initialSessions, userId }: Props) {
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${statusColor[s.status]}`}>{s.status}</span>
                 </div>
                 {s.goal && <p className="text-xs text-muted-foreground mt-1 truncate">{s.goal}</p>}
-                <p className="text-xs text-muted-foreground/60 mt-1">{new Date(s.updated_at).toLocaleDateString()}</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">{new Date(s.updated_at).toISOString().split('T')[0]}</p>
               </a>
               <button
                 onClick={() => handleDelete(s.id)}
