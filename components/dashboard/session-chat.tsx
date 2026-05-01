@@ -1,9 +1,12 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useMemo, useEffect, useRef, useState } from 'react'
+import { useChat } from '@ai-sdk/react'
+import { WorkflowChatTransport } from '@workflow/ai'
 import { createClient } from '@/lib/supabase/client'
 import type { Session, Message } from '@/lib/types'
 import { Button } from '@/components/ui/button'
+import type { UIMessage } from 'ai'
 
 interface Props {
   session: Session
@@ -19,17 +22,21 @@ const PROMPT_TIPS = [
   'Specify the target audience or skill level',
 ]
 
+function dbMessageToUIMessage(m: Message): UIMessage {
+  return {
+    id: m.id,
+    role: m.role as UIMessage['role'],
+    parts: [{ type: 'text', text: m.content }],
+    content: m.content,
+    createdAt: new Date(m.created_at),
+  }
+}
+
 export function SessionChat({ session, initialMessages, userId }: Props) {
-  const [messages, setMessages] = useState<Message[]>(initialMessages)
-  const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
   const [tipIndex, setTipIndex] = useState(0)
+  const [persistedRunId, setPersistedRunId] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -38,72 +45,93 @@ export function SessionChat({ session, initialMessages, userId }: Props) {
     return () => clearInterval(interval)
   }, [])
 
-  async function handleSend(e: React.FormEvent) {
+  const transport = useMemo(
+    () =>
+      new WorkflowChatTransport({
+        api: '/api/chat',
+        // After each completed response, persist final messages to Supabase
+        onChatEnd: async (_, { messages }) => {
+          const supabase = createClient()
+          // Persist only the latest assistant turn (last message)
+          const last = messages[messages.length - 1]
+          if (last?.role === 'assistant') {
+            const text = last.parts
+              .filter((p) => p.type === 'text')
+              .map((p) => (p as { type: 'text'; text: string }).text)
+              .join('')
+            if (text) {
+              await supabase
+                .from('messages')
+                .insert({
+                  session_id: session.id,
+                  user_id: userId,
+                  role: 'assistant',
+                  content: text,
+                })
+            }
+          }
+        },
+        // Capture the run ID from the response header for reconnection
+        onChatSendMessage: (_req, res) => {
+          const runId = res.headers.get('x-workflow-run-id')
+          if (runId) setPersistedRunId(runId)
+        },
+      }),
+    [session.id, userId],
+  )
+
+  const { messages, input, handleInputChange, handleSubmit, status, append } = useChat({
+    transport,
+    initialMessages: initialMessages.map(dbMessageToUIMessage),
+    body: {
+      goal: session.goal ?? null,
+    },
+    // Persist user messages to Supabase before they're sent
+    onFinish: async () => {
+      // assistant turn already persisted in onChatEnd above
+    },
+  })
+
+  // Persist user messages to Supabase when appended
+  const handleSend = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!input.trim() || loading) return
-
-    const userContent = input.trim()
-    setInput('')
-    setLoading(true)
-
+    if (!input.trim() || status === 'streaming') return
     const supabase = createClient()
-
-    // Save user message
-    const { data: userMsg } = await supabase
-      .from('messages')
-      .insert({ session_id: session.id, user_id: userId, role: 'user', content: userContent })
-      .select()
-      .single()
-
-    if (userMsg) setMessages((m) => [...m, userMsg])
-
-    // Call AI
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId: session.id,
-          goal: session.goal,
-          messages: [...messages.map((m) => ({ role: m.role, content: m.content })), { role: 'user', content: userContent }],
-        }),
-      })
-
-      const { reply } = await response.json()
-
-      const { data: assistantMsg } = await supabase
-        .from('messages')
-        .insert({ session_id: session.id, user_id: userId, role: 'assistant', content: reply })
-        .select()
-        .single()
-
-      if (assistantMsg) setMessages((m) => [...m, assistantMsg])
-    } catch {
-      const errMsg = 'Unable to reach the assistant. Please try again.'
-      const { data: errMsgData } = await supabase
-        .from('messages')
-        .insert({ session_id: session.id, user_id: userId, role: 'assistant', content: errMsg })
-        .select()
-        .single()
-      if (errMsgData) setMessages((m) => [...m, errMsgData])
-    }
-
-    setLoading(false)
+    await supabase.from('messages').insert({
+      session_id: session.id,
+      user_id: userId,
+      role: 'user',
+      content: input.trim(),
+    })
+    handleSubmit(e)
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      handleSend(e as unknown as React.FormEvent)
+      handleSend(e as unknown as React.FormEvent<HTMLFormElement>)
     }
   }
 
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  const isStreaming = status === 'streaming'
+
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
-      {/* Prompt tip banner */}
-      <div className="border-b border-border bg-accent/50 px-8 py-2 flex items-center gap-2">
-        <span className="text-xs text-primary font-medium shrink-0">Tip:</span>
-        <span className="text-xs text-muted-foreground transition-all">{PROMPT_TIPS[tipIndex]}</span>
+      {/* Tip banner */}
+      <div className="border-b border-border bg-accent/50 px-8 py-2 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-xs text-primary font-medium shrink-0">Tip:</span>
+          <span className="text-xs text-muted-foreground truncate">{PROMPT_TIPS[tipIndex]}</span>
+        </div>
+        {persistedRunId && (
+          <span className="text-xs text-muted-foreground/50 shrink-0 font-mono" title="Workflow run ID — stream is durable and resumable">
+            run:{persistedRunId.slice(0, 8)}
+          </span>
+        )}
       </div>
 
       {/* Messages */}
@@ -117,34 +145,40 @@ export function SessionChat({ session, initialMessages, userId }: Props) {
             </div>
             <p className="text-sm font-medium text-foreground">Start your session</p>
             <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-              Describe your goal clearly. The assistant will help you craft effective agent prompts and break down complex tasks.
+              Describe your goal clearly. Veyra will help you craft effective agent prompts. Responses are backed by durable workflows — they survive refreshes and interruptions.
             </p>
           </div>
         )}
 
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            {msg.role === 'assistant' && (
-              <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center shrink-0 mt-0.5">
-                <span className="text-xs text-primary font-bold">V</span>
-              </div>
-            )}
+        {messages.map((msg) => {
+          const text = msg.parts
+            .filter((p) => p.type === 'text')
+            .map((p) => (p as { type: 'text'; text: string }).text)
+            .join('')
+          return (
             <div
-              className={`max-w-lg px-4 py-3 rounded-xl text-sm leading-relaxed ${
-                msg.role === 'user'
-                  ? 'bg-primary text-primary-foreground rounded-br-sm'
-                  : 'bg-card border border-border text-foreground rounded-bl-sm'
-              }`}
+              key={msg.id}
+              className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <p className="whitespace-pre-wrap">{msg.content}</p>
+              {msg.role === 'assistant' && (
+                <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-xs text-primary font-bold">V</span>
+                </div>
+              )}
+              <div
+                className={`max-w-lg px-4 py-3 rounded-xl text-sm leading-relaxed ${
+                  msg.role === 'user'
+                    ? 'bg-primary text-primary-foreground rounded-br-sm'
+                    : 'bg-card border border-border text-foreground rounded-bl-sm'
+                }`}
+              >
+                <p className="whitespace-pre-wrap">{text}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
 
-        {loading && (
+        {isStreaming && (
           <div className="flex gap-3 justify-start">
             <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center shrink-0 mt-0.5">
               <span className="text-xs text-primary font-bold">V</span>
@@ -168,7 +202,7 @@ export function SessionChat({ session, initialMessages, userId }: Props) {
           <textarea
             ref={textareaRef}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder="Describe what you want to build or ask... (Shift+Enter for new line)"
             rows={2}
@@ -176,7 +210,7 @@ export function SessionChat({ session, initialMessages, userId }: Props) {
           />
           <Button
             type="submit"
-            disabled={loading || !input.trim()}
+            disabled={isStreaming || !input.trim()}
             className="bg-primary text-primary-foreground hover:bg-primary/90 h-10 shrink-0"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,7 +218,9 @@ export function SessionChat({ session, initialMessages, userId }: Props) {
             </svg>
           </Button>
         </form>
-        <p className="text-xs text-muted-foreground/60 mt-2">Enter to send · Shift+Enter for new line</p>
+        <p className="text-xs text-muted-foreground/60 mt-2">
+          Enter to send · Shift+Enter for new line · Stream is durable and auto-resumes
+        </p>
       </div>
     </div>
   )
