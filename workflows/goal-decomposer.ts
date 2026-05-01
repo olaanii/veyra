@@ -1,5 +1,6 @@
 import { FatalError } from 'workflow'
 import { generateText } from 'ai'
+import { createGroq } from '@ai-sdk/groq'
 
 interface PipelineStep {
   id: string
@@ -14,8 +15,10 @@ interface PipelineStep {
 async function decomposGoal(goal: string): Promise<PipelineStep[]> {
   'use step'
 
+  const groq = createGroq({ apiKey: process.env.GROQ_API_KEY })
+
   const { text } = await generateText({
-    model: 'openai/gpt-4o-mini',
+    model: groq('llama-3.3-70b-versatile'),
     system: `You are Veyra, an expert AI agent architect. Given a goal, decompose it into 3-6 concrete agent pipeline steps.
 
 Return ONLY a valid JSON array with no markdown fences. Each step must have:

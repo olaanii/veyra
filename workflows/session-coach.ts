@@ -1,6 +1,7 @@
 import { DurableAgent } from '@workflow/ai/agent'
-import { getWritable } from 'workflow'
-import { convertToModelMessages, type UIMessage, type UIMessageChunk } from 'ai'
+import { getWritable, fetch } from 'workflow'
+import { createGroq } from '@ai-sdk/groq'
+import { type UIMessage, type UIMessageChunk } from 'ai'
 
 export async function sessionCoachWorkflow(
   messages: UIMessage[],
@@ -8,10 +9,14 @@ export async function sessionCoachWorkflow(
 ) {
   'use workflow'
 
+  // fetch must be shimmed for the workflow sandbox before using AI SDK
+  globalThis.fetch = fetch
+
+  const groq = createGroq({ apiKey: process.env.GROQ_API_KEY })
   const writable = getWritable<UIMessageChunk>()
 
   const agent = new DurableAgent({
-    model: 'openai/gpt-4o-mini',
+    model: groq('llama-3.3-70b-versatile'),
     instructions: `You are Veyra — an expert agent communication coach helping junior developers learn to write effective prompts for AI agents.
 
 Your job is to:
@@ -27,7 +32,7 @@ Always end your response with a concrete actionable next step or an improved ver
   })
 
   await agent.stream({
-    messages: await convertToModelMessages(messages),
+    messages,
     writable,
     maxSteps: 5,
   })

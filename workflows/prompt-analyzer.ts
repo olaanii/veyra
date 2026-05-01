@@ -1,11 +1,14 @@
 import { getWritable } from 'workflow'
 import { generateText } from 'ai'
+import { createGroq } from '@ai-sdk/groq'
 
 async function runPromptAnalysis(prompt: string): Promise<string> {
   'use step'
 
+  const groq = createGroq({ apiKey: process.env.GROQ_API_KEY })
+
   const { text } = await generateText({
-    model: 'openai/gpt-4o-mini',
+    model: groq('llama-3.3-70b-versatile'),
     system: `You are Veyra, an expert in prompt engineering for AI agents. Analyze the given prompt and provide structured feedback.
 
 Your analysis must cover:
