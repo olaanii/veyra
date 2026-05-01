@@ -113,3 +113,60 @@ export type Export = {
   content: string
   created_at: string
 }
+
+export type PromptVersion = {
+  id: string
+  session_id: string
+  user_id: string
+  content: string
+  version_number: number
+  quality_score: number | null
+  quality_feedback: string | null
+  is_good_example: boolean
+  confidence_score: number | null
+  token_estimate: number | null
+  cost_estimate: number | null
+  created_at: string
+}
+
+export type StackSnapshot = {
+  id: string
+  request_id: string
+  user_id: string
+  snapshot_name: string
+  snapshot_data: Record<string, any>
+  confidence_score: number | null
+  reasoning: string | null
+  is_current: boolean
+  created_at: string
+}
+
+export type SessionShare = {
+  id: string
+  session_id: string
+  owner_id: string
+  shared_with_email: string
+  permission: 'view' | 'comment' | 'edit'
+  created_at: string
+}
+
+export type SessionComment = {
+  id: string
+  session_id: string
+  user_id: string
+  content: string
+  parent_comment_id: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type Analytics = {
+  id: string
+  user_id: string
+  metric_type: string
+  metric_value: number | null
+  period_start: string
+  period_end: string
+  context: Record<string, any> | null
+  created_at: string
+}
