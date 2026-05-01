@@ -47,3 +47,69 @@ export type PromptTemplate = {
   usage_count: number
   created_at: string
 }
+
+export type Request = {
+  id: string
+  user_id: string
+  session_id: string | null
+  title: string
+  description: string
+  goal: string | null
+  budget: string | null
+  timeline: string | null
+  team_size: string | null
+  scale: string | null
+  platform: string | null
+  region: string | null
+  security_requirements: string | null
+  status: 'intake' | 'clarifying' | 'extracted' | 'recommended' | 'finalized'
+  created_at: string
+  updated_at: string
+}
+
+export type ClarifyingQuestion = {
+  id: string
+  request_id: string
+  user_id: string
+  question: string
+  answer: string | null
+  category: string
+  created_at: string
+}
+
+export type Requirement = {
+  id: string
+  request_id: string
+  user_id: string
+  category: string
+  title: string
+  description: string
+  priority: 'low' | 'medium' | 'high' | 'critical'
+  status: 'active' | 'deferred' | 'removed'
+  created_at: string
+}
+
+export type StackOption = {
+  id: string
+  request_id: string
+  user_id: string
+  title: string
+  description: string
+  pros: string[]
+  cons: string[]
+  estimated_effort: string | null
+  estimated_cost: string | null
+  risk_level: 'low' | 'medium' | 'high'
+  recommendation_reason: string | null
+  rank: number | null
+  created_at: string
+}
+
+export type Export = {
+  id: string
+  request_id: string
+  user_id: string
+  format: 'markdown' | 'json'
+  content: string
+  created_at: string
+}
