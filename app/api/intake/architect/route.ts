@@ -165,6 +165,7 @@ ${requirementsText}`,
     const { object: architectureOutline } = await generateObject({
       model: groq('llama-3.3-70b-versatile'),
       schema: ArchitectureOutlineSchema,
+      mode: 'json',
       prompt: `Design a comprehensive architecture for this project using the stack: ${selectedStackName || 'custom'}
 
 Requirements:
@@ -180,6 +181,7 @@ For each component (frontend, backend, database, infrastructure, devops), provid
     const { object: agentTasksData } = await generateObject({
       model: groq('llama-3.3-70b-versatile'),
       schema: AgentTasksSchema,
+      mode: 'json',
       prompt: `Break down the architecture into concrete tasks for 6 specialized agents.
 
 Architecture:
@@ -214,6 +216,7 @@ The prompt should be specific, include implementation details, constraints, and 
     const { object: promptExamples } = await generateObject({
       model: groq('llama-3.3-70b-versatile'),
       schema: PromptExamplesSchema,
+      mode: 'json',
       prompt: `For this architecture task, provide examples of bad and improved prompts.
 
 Architecture:
@@ -228,6 +231,7 @@ Provide:
     const { object: riskAssessment } = await generateObject({
       model: groq('llama-3.3-70b-versatile'),
       schema: RiskAssessmentSchema,
+      mode: 'json',
       prompt: `Assess risks and unknowns for this architecture and stack.
 
 Stack: ${selectedStackName}

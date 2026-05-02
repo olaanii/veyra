@@ -131,6 +131,7 @@ export async function POST(req: NextRequest) {
       const { object: architectureOutline } = await generateObject({
         model: groq('llama-3.3-70b-versatile'),
         schema: ArchitectureOutlineSchema,
+        mode: 'json',
         prompt: `Redesign the architecture for this project using the stack: ${pkg.selected_stack_name}
 
 Requirements:
@@ -148,6 +149,7 @@ Create an improved version with better component separation, clearer responsibil
       const { object: agentTasksData } = await generateObject({
         model: groq('llama-3.3-70b-versatile'),
         schema: AgentTasksSchema,
+        mode: 'json',
         prompt: `Regenerate the agent tasks breakdown based on the updated architecture.
 
 Architecture:
@@ -187,6 +189,7 @@ Make it more detailed, specific, and include all necessary context.`,
       const { object: promptExamples } = await generateObject({
         model: groq('llama-3.3-70b-versatile'),
         schema: PromptExamplesSchema,
+        mode: 'json',
         prompt: `Generate better examples of bad vs improved prompts for this architecture.
 
 Architecture:
@@ -201,6 +204,7 @@ Provide 3 bad examples with issues and 3 improved versions with explanations.`,
       const { object: riskAssessment } = await generateObject({
         model: groq('llama-3.3-70b-versatile'),
         schema: RiskAssessmentSchema,
+        mode: 'json',
         prompt: `Update the risk assessment for this architecture and stack.
 
 Stack: ${pkg.selected_stack_name}

@@ -70,6 +70,7 @@ export async function POST(req: NextRequest) {
       const { object: result } = await generateObject({
         model: groq('llama-3.3-70b-versatile'),
         schema: ClarifyingQuestionsSchema,
+        mode: 'json',
         prompt: `Based on this project brief, generate 5-7 clarifying questions that would help better understand the project scope, requirements, and constraints:
 
 "${request.brief}"

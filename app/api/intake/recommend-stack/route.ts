@@ -75,6 +75,7 @@ export async function POST(req: NextRequest) {
     const { object: result } = await generateObject({
       model: groq('llama-3.3-70b-versatile'),
       schema: StackRecommendationSchema,
+      mode: 'json',
       prompt: `Based on the following project requirements, generate 3-5 optimized technology stack recommendations.
 
 PROJECT BRIEF:

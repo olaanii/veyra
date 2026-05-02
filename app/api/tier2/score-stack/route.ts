@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
     const { object: result } = await generateObject({
       model: groq('llama-3.3-70b-versatile'),
       schema: StackConfidenceSchema,
+      mode: 'json',
       prompt: `You are a senior software architect. Evaluate this tech stack recommendation and provide a confidence score and analysis.
 
 Stack: "${stackTitle}"

@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
     const { object: result } = await generateObject({
       model: groq('llama-3.3-70b-versatile'),
       schema: PromptScoreSchema,
+      mode: 'json',
       prompt: `You are an expert prompt engineer. Analyze the following prompt and score it on quality (0-100), estimate token usage, and provide constructive feedback.
 
 Prompt: "${promptContent}"
