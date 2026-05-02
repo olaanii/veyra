@@ -156,6 +156,8 @@ export default function IntakePage() {
       setIsLoading(false)
     }
   }
+
+  const handleExport = async () => {
     setIsLoading(true)
     try {
       const res = await fetch('/api/intake/export', {
