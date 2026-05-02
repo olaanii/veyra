@@ -1,47 +1,135 @@
-import { start } from 'workflow/api'
-import { extractRequirementsWorkflow } from '@/workflows/extract-requirements'
 import { createClient } from '@/lib/supabase/server'
-import type { NextRequest } from 'next/server'
+import { generateObject } from 'ai'
+import { groq } from '@ai-sdk/groq'
+import { z } from 'zod'
+import { NextRequest, NextResponse } from 'next/server'
+
+const RequirementsSchema = z.object({
+  requirements: z.array(
+    z.object({
+      title: z.string().describe('Requirement title'),
+      description: z.string().describe('Detailed requirement description'),
+      type: z.enum(['functional', 'non-functional', 'constraint']),
+      priority: z.enum(['critical', 'high', 'medium', 'low']),
+    })
+  ),
+})
 
 export async function POST(req: NextRequest) {
-  const { requestId, answers } = await req.json()
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  try {
+    const { requestId, answers } = await req.json()
 
-  if (!user) return new Response('Unauthorized', { status: 401 })
+    if (!requestId) {
+      return NextResponse.json(
+        { error: 'requestId is required' },
+        { status: 400 }
+      )
+    }
 
-  const { data: request } = await supabase
-    .from('requests')
-    .select()
-    .eq('id', requestId)
-    .single()
+    const supabase = await createClient()
 
-  if (!request || request.user_id !== user.id) return new Response('Forbidden', { status: 403 })
+    // Get the user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-  const answerText = Object.entries(answers)
-    .map(([q, a]: [string, unknown]) => `${q}: ${a}`)
-    .join('\n')
+    // Get the request and clarifying questions
+    const { data: request, error: requestError } = await supabase
+      .from('requests')
+      .select('*')
+      .eq('id', requestId)
+      .eq('user_id', user.id)
+      .single()
 
-  const run = await start(extractRequirementsWorkflow, [
-    request.description,
-    answers,
-    request.goal,
-  ])
+    if (requestError || !request) {
+      return NextResponse.json(
+        { error: 'Request not found' },
+        { status: 404 }
+      )
+    }
 
-  // Save clarifying answers
-  for (const [question, answer] of Object.entries(answers)) {
-    await supabase.from('clarifying_questions').insert({
-      request_id: requestId,
-      user_id: user.id,
-      question,
-      answer: String(answer),
+    // Get all clarifying questions and answers for context
+    const { data: clarifyingQs } = await supabase
+      .from('clarifying_questions')
+      .select('*')
+      .eq('request_id', requestId)
+
+    // Build context from questions and answers
+    const context = clarifyingQs
+      ?.map(q => `Q: ${q.question}\nA: ${answers?.[q.question] || q.answer || 'Not answered'}`)
+      .join('\n\n') || ''
+
+    // Generate requirements using Groq
+    const { object: result } = await generateObject({
+      model: groq('mixtral-8x7b-32768'),
+      schema: RequirementsSchema,
+      prompt: `Based on the project brief and clarifying answers provided, extract and structure the key requirements:
+
+PROJECT BRIEF:
+"${request.brief}"
+
+CLARIFYING Q&A:
+${context}
+
+Extract 10-15 concrete, actionable requirements organized by type (functional, non-functional, constraints).
+For each requirement, provide a clear title, detailed description, and appropriate priority level.
+Ensure requirements are specific to this project and follow SMART criteria (Specific, Measurable, Achievable, Relevant, Time-bound where applicable).`,
     })
+
+    // Save answers to clarifying questions
+    if (answers) {
+      for (const [questionText, answer] of Object.entries(answers)) {
+        const q = clarifyingQs?.find(cq => cq.question === questionText)
+        if (q) {
+          await supabase
+            .from('clarifying_questions')
+            .update({ answer: String(answer), answered_at: new Date().toISOString() })
+            .eq('id', q.id)
+        }
+      }
+    }
+
+    // Store the extracted requirements
+    const { data: requirements, error: insertError } = await supabase
+      .from('requirements')
+      .insert(
+        result.requirements.map((r) => ({
+          request_id: requestId,
+          user_id: user.id,
+          title: r.title,
+          description: r.description,
+          type: r.type,
+          priority: r.priority,
+          status: 'active',
+        }))
+      )
+      .select()
+
+    if (insertError) {
+      console.error('[v0] Failed to insert requirements:', insertError)
+      return NextResponse.json(
+        { error: 'Failed to store requirements' },
+        { status: 500 }
+      )
+    }
+
+    // Update request status
+    await supabase
+      .from('requests')
+      .update({ status: 'extracting' })
+      .eq('id', requestId)
+
+    return NextResponse.json({
+      requestId,
+      requirements: requirements || result.requirements,
+      message: 'Requirements extracted successfully',
+    })
+  } catch (error) {
+    console.error('[v0] Extract endpoint error:', error)
+    return NextResponse.json(
+      { error: 'Failed to extract requirements' },
+      { status: 500 }
+    )
   }
-
-  await supabase
-    .from('requests')
-    .update({ status: 'extracted' })
-    .eq('id', requestId)
-
-  return Response.json({ runId: run.runId })
 }

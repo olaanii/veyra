@@ -72,37 +72,11 @@ export default function IntakePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requestId: request?.id, answers }),
       })
-
-      // Simulate getting requirements (in real app, would poll workflow)
-      const mockRequirements: Requirement[] = [
-        {
-          id: '1',
-          request_id: request?.id || '',
-          user_id: '',
-          category: 'functional',
-          title: 'User Authentication',
-          description: 'Support email/password signup and login',
-          priority: 'critical',
-          status: 'active',
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: '2',
-          request_id: request?.id || '',
-          user_id: '',
-          category: 'performance',
-          title: 'API Response Time',
-          description: 'All endpoints must respond in <500ms',
-          priority: 'high',
-          status: 'active',
-          created_at: new Date().toISOString(),
-        },
-      ]
-
-      setRequirements(mockRequirements)
+      const { requirements: extractedRequirements } = await res.json()
+      setRequirements(extractedRequirements || [])
       setStage('requirements')
     } catch (error) {
-      console.error('Error:', error)
+      console.error('[v0] Error extracting requirements:', error)
     } finally {
       setIsLoading(false)
     }
@@ -111,30 +85,37 @@ export default function IntakePage() {
   const handleRecommendStack = async () => {
     setIsLoading(true)
     try {
-      // Simulate getting stack recommendations
-      const mockStacks: StackOption[] = [
-        {
-          id: '1',
-          request_id: request?.id || '',
-          user_id: '',
-          title: 'Modern SaaS Stack',
-          description: 'Next.js + TypeScript + Supabase',
-          pros: ['Fast development', 'Scalable', 'Modern tooling', 'Great DX'],
-          cons: ['Requires Node.js knowledge', 'PostgreSQL learning curve'],
-          estimated_effort: '6-8 weeks',
-          estimated_cost: '$50-200/month',
-          risk_level: 'low',
-          recommendation_reason: 'Best for rapid development with modern best practices',
-          rank: 1,
-          created_at: new Date().toISOString(),
-        },
-      ]
+      const res = await fetch('/api/intake/recommend-stack', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId: request?.id }),
+      })
+      const { recommendations } = await res.json()
 
-      setStacks(mockStacks)
-      setSelectedStack(mockStacks[0].id)
+      // Map from stack_recommendations schema to StackOption type
+      const stackOptions: StackOption[] = recommendations.map((r: any) => ({
+        id: r.id,
+        request_id: r.request_id,
+        user_id: r.user_id,
+        title: r.stack_name,
+        description: r.description,
+        pros: r.pros,
+        cons: r.cons,
+        estimated_effort: r.effort_estimate,
+        estimated_cost: 'TBD',
+        risk_level: r.risk_level,
+        recommendation_reason: r.reasoning,
+        rank: 1,
+        created_at: r.created_at,
+      }))
+
+      setStacks(stackOptions)
+      if (stackOptions.length > 0) {
+        setSelectedStack(stackOptions[0].id)
+      }
       setStage('stacks')
     } catch (error) {
-      console.error('Error:', error)
+      console.error('[v0] Error generating stack recommendations:', error)
     } finally {
       setIsLoading(false)
     }
