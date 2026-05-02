@@ -135,15 +135,6 @@ export default function IntakePage() {
     }
   }
 
-  const stages: Record<Stage, { label: string; description: string; stepNumber: number }> = {
-    intake: { label: 'Project Brief', description: 'Describe what you want to build', stepNumber: 1 },
-    clarifying: { label: 'Clarify', description: 'Answer questions about your project', stepNumber: 2 },
-    requirements: { label: 'Requirements', description: 'Review extracted requirements', stepNumber: 3 },
-    stacks: { label: 'Tech Stack', description: 'Choose your technology foundation', stepNumber: 4 },
-    architecture: { label: 'Architecture', description: 'Review your system design', stepNumber: 5 },
-    export: { label: 'Export', description: 'Download complete documentation', stepNumber: 6 },
-  }
-
   const handleRegenerate = async (section: string) => {
     // Handle regeneration of specific sections
     console.log('[v0] Regenerating section:', section)
