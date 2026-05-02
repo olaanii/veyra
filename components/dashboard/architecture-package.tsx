@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { ChevronDown, ChevronUp, RefreshCw, Zap } from 'lucide-react'
+import { ChevronDown, ChevronUp, RefreshCw } from 'lucide-react'
+import { PromptComparison } from '@/components/dashboard/prompt-comparison'
 import type { Tables } from '@/lib/types'
 
 interface ArchitecturePackageProps {
@@ -286,24 +287,11 @@ export function ArchitecturePackage({ architecture }: ArchitecturePackageProps) 
 
         {expandedSections.examples && (
           <div className="border-t border-border p-4 space-y-4">
-            <div>
-              <h4 className="font-semibold text-foreground text-sm mb-2">Bad Examples</h4>
-              {(promptExamples?.bad_examples || []).map((ex: any, i: number) => (
-                <div key={i} className="bg-red-50 rounded p-2 mb-2 text-xs">
-                  <p className="font-semibold text-red-700 mb-1">Issue:</p>
-                  <p className="text-red-600">{(ex.issues || [])[0]}</p>
-                </div>
-              ))}
-            </div>
-            <div>
-              <h4 className="font-semibold text-foreground text-sm mb-2">Improved Examples</h4>
-              {(promptExamples?.improved_examples || []).map((ex: any, i: number) => (
-                <div key={i} className="bg-emerald-50 rounded p-2 mb-2 text-xs">
-                  <p className="font-semibold text-emerald-700 mb-1">Improvement:</p>
-                  <p className="text-emerald-600">{(ex.improvements || [])[0]}</p>
-                </div>
-              ))}
-            </div>
+            <PromptComparison
+              badExamples={promptExamples?.bad_examples || []}
+              improvedExamples={promptExamples?.improved_examples || []}
+              onRegenerate={() => handleRegenerate('prompt_examples')}
+            />
             <Button
               variant="outline"
               size="sm"
@@ -312,7 +300,7 @@ export function ArchitecturePackage({ architecture }: ArchitecturePackageProps) 
               className="w-full"
             >
               <RefreshCw className="w-4 h-4 mr-2" />
-              {regeneratingSection === 'prompt_examples' ? 'Regenerating...' : 'Regenerate'}
+              {regeneratingSection === 'prompt_examples' ? 'Regenerating...' : 'Regenerate Examples'}
             </Button>
           </div>
         )}

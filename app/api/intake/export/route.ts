@@ -46,17 +46,32 @@ ${request.description}
 ${request.goal ? `### Goal\n${request.goal}\n` : ''}
 
 ## Requirements
+
 ${
   requirements && requirements.length > 0
-    ? requirements
-        .map(
-          (r: any) => `### ${r.title}
-- **Priority:** ${r.priority}
-- **Type:** ${r.type}
-- ${r.description}`,
-        )
-        .join('\n\n')
-    : 'No requirements extracted'
+    ? `| # | Title | Priority | Type | Description |
+|---|-------|----------|------|-------------|
+${requirements
+  .map(
+    (r: any, i: number) =>
+      `| ${i + 1} | ${r.title} | \`${r.priority}\` | \`${r.type}\` | ${r.description.substring(0, 60)}${r.description.length > 60 ? '...' : ''} |`,
+  )
+  .join('\n')}
+
+### Detailed Requirements
+
+${requirements
+  .map(
+    (r: any) => `#### ${r.title}
+
+- **Priority:** \`${r.priority}\`  
+- **Type:** \`${r.type}\`  
+- **Status:** \`${r.status || 'active'}\`
+
+${r.description}`,
+  )
+  .join('\n\n')}`
+    : '> No requirements extracted yet.'
 }
 
 ## Architecture Package
@@ -121,28 +136,49 @@ ${
 
 ### Risk Assessment
 
+> **⚠️ Important:** Review these identified risks and mitigations before implementation begins.
+
 ${
   architecture.risk_assessment
     ? `
-**Identified Risks:**
+#### Identified Risks
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|------------|--------|-----------|
 ${(architecture.risk_assessment as any).risks
-  ?.map((r: any) => `- ${r.risk} (Likelihood: ${r.likelihood}, Impact: ${r.impact})`)
-  .join('\n') || '- None'}
+  ?.map(
+    (r: any) =>
+      `| ${r.risk} | ${r.likelihood} | ${r.impact} | See mitigations below |`,
+  )
+  .join('\n') || '| No risks identified | - | - | - |'}
 
-**Unknowns:**
-${(architecture.risk_assessment as any).unknowns?.map((u: string) => `- ${u}`).join('\n') || '- None'}
+#### Unknowns & Assumptions
 
-**Mitigations:**
-${(architecture.risk_assessment as any).mitigations?.map((m: string) => `- ${m}`).join('\n') || '- None'}
+${(architecture.risk_assessment as any).unknowns?.length > 0
+  ? (architecture.risk_assessment as any).unknowns
+      .map((u: string) => `- ❓ ${u}`)
+      .join('\n')
+  : '- No major unknowns identified'}
+
+#### Mitigation Strategies
+
+${(architecture.risk_assessment as any).mitigations?.length > 0
+  ? (architecture.risk_assessment as any).mitigations
+      .map((m: string) => `- ✅ ${m}`)
+      .join('\n')
+  : '- Standard best practices and monitoring'}
 `
-    : 'No risk assessment'
+    : '> No risk assessment available.'
 }
 
 ### Estimates & Costs
 
-- **Total Tokens:** ${(architecture.estimates as any)?.total_tokens || 0}
-- **Estimated Cost:** \$${(architecture.estimates as any)?.estimated_cost || '0'}
-- **Reasoning:** ${(architecture.estimates as any)?.reasoning || 'N/A'}
+| Metric | Value |
+|--------|-------|
+| Total Tokens | ${(architecture.estimates as any)?.total_tokens || 0} |
+| Estimated Cost | \$${(architecture.estimates as any)?.estimated_cost || '0'} |
+
+> **Reasoning:** ${(architecture.estimates as any)?.reasoning || 'Based on complexity and model usage'}
 
 ### Confidence Scores
 
@@ -154,24 +190,65 @@ ${
     : 'N/A'
 }
 
-### Prompt Teaching Examples
+### Prompt Strategy & Teaching Examples
 
-**Bad Examples to Avoid:**
+#### Why Prompt Quality Matters
+
+Effective prompts are crucial to AI success. Below are real examples from your project showing what to avoid and what works well.
+
+#### Bad Approaches to Avoid
+
 ${
-  architecture.prompt_examples && (architecture.prompt_examples as any).bad_examples
+  architecture.prompt_examples && (architecture.prompt_examples as any).bad_examples && (architecture.prompt_examples as any).bad_examples.length > 0
     ? (architecture.prompt_examples as any).bad_examples
-        .map((ex: any) => `- ${(ex.issues || [])[0] || 'Issue not specified'}`)
-        .join('\n')
-    : '- None'
+        .map((ex: any) => {
+          const prompt = ex.prompt ? `\`\`\`\n${ex.prompt}\n\`\`\`` : ''
+          const issues = ex.issues?.length > 0
+            ? `\n\n**Issues:**\n${ex.issues.map((i: string) => `- ${i}`).join('\n')}`
+            : ''
+          const score = ex.score ? `\n\n**Effectiveness:** ${Math.round(ex.score)}%` : ''
+          return `##### ❌ Anti-pattern\n${prompt}${issues}${score}`
+        })
+        .join('\n\n')
+    : 'No examples'
 }
 
-**Improved Approaches:**
+#### Improved Approaches (Recommended)
+
 ${
-  architecture.prompt_examples && (architecture.prompt_examples as any).improved_examples
+  architecture.prompt_examples && (architecture.prompt_examples as any).improved_examples && (architecture.prompt_examples as any).improved_examples.length > 0
     ? (architecture.prompt_examples as any).improved_examples
-        .map((ex: any) => `- ${(ex.improvements || [])[0] || 'Improvement not specified'}`)
+        .map((ex: any) => {
+          const prompt = ex.prompt ? `\`\`\`\n${ex.prompt}\n\`\`\`` : ''
+          const improvements = ex.improvements?.length > 0
+            ? `\n\n**Improvements:**\n${ex.improvements.map((i: string) => `- ${i}`).join('\n')}`
+            : ''
+          const score = ex.score ? `\n\n**Effectiveness:** ${Math.round(ex.score)}%` : ''
+          return `##### ✅ Best Practice\n${prompt}${improvements}${score}`
+        })
+        .join('\n\n')
+    : 'No examples'
+}
+
+#### Downstream Prompts by Agent Role
+
+Below are the tailored prompts for each team member implementing your architecture:
+
+${
+  architecture.downstream_prompts
+    ? Object.entries(architecture.downstream_prompts)
+        .filter(([, prompt]: [string, any]) => prompt && prompt.length > 0)
+        .map(
+          ([agent, prompt]: [string, any]) => `
+##### ${agent.charAt(0).toUpperCase() + agent.slice(1)} Engineer
+
+\`\`\`
+${prompt}
+\`\`\`
+`,
+        )
         .join('\n')
-    : '- None'
+    : ''
 }
 `
     : '## No Architecture Package Generated\nPlease complete the architecture generation step.'

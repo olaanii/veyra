@@ -5,11 +5,18 @@ export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ count: sessionCount }, { count: taskCount }, { count: templateCount }] = await Promise.all([
+  const [{ count: requestCount }, { count: sessionCount }, { count: taskCount }] = await Promise.all([
+    supabase.from('requests').select('*', { count: 'exact', head: true }).eq('user_id', user!.id),
     supabase.from('sessions').select('*', { count: 'exact', head: true }).eq('user_id', user!.id),
     supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('user_id', user!.id),
-    supabase.from('prompt_templates').select('*', { count: 'exact', head: true }).eq('user_id', user!.id),
   ])
+
+  const { data: recentRequests } = await supabase
+    .from('requests')
+    .select('*')
+    .eq('user_id', user!.id)
+    .order('updated_at', { ascending: false })
+    .limit(4)
 
   const { data: recentSessions } = await supabase
     .from('sessions')
@@ -27,9 +34,9 @@ export default async function DashboardPage() {
     .limit(4)
 
   const stats = [
+    { label: 'Architecture Requests', value: requestCount ?? 0, href: '/dashboard/requests' },
     { label: 'Sessions', value: sessionCount ?? 0, href: '/dashboard/sessions' },
     { label: 'Active tasks', value: activeTasks?.length ?? 0, href: '/dashboard/tasks' },
-    { label: 'Saved templates', value: templateCount ?? 0, href: '/dashboard/prompts' },
     { label: 'Total tasks', value: taskCount ?? 0, href: '/dashboard/tasks' },
   ]
 
@@ -39,13 +46,13 @@ export default async function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-foreground tracking-tight">Overview</h1>
-          <p className="text-muted-foreground text-sm mt-1">Your agent communication workspace</p>
+          <p className="text-muted-foreground text-sm mt-1">AI-powered architecture & workflow design</p>
         </div>
         <Link
-          href="/dashboard/sessions"
+          href="/dashboard/intake"
           className="text-sm bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
         >
-          New session
+          New Request
         </Link>
       </div>
 
@@ -63,9 +70,37 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      {/* Recent sessions + active tasks */}
+      {/* Recent Requests + Sessions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Sessions */}
+        {/* Recent Requests */}
+        <div className="bg-card border border-border rounded-lg p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-foreground">Recent Requests</h2>
+            <Link href="/dashboard/requests" className="text-xs text-primary hover:underline underline-offset-4">View all</Link>
+          </div>
+          {recentRequests && recentRequests.length > 0 ? (
+            <ul className="space-y-2">
+              {recentRequests.map((r: any) => (
+                <li key={r.id}>
+                  <Link
+                    href={`/dashboard/intake?requestId=${r.id}`}
+                    className="flex items-center justify-between px-3 py-2 rounded-md hover:bg-secondary transition-colors group"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm text-foreground truncate group-hover:text-primary transition-colors block">{r.title}</span>
+                      <span className="text-xs text-muted-foreground">{r.brief?.substring(0, 40)}</span>
+                    </div>
+                    <RequestStatusBadge status={r.status} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <EmptyState label="No requests yet" action={{ label: 'Create one', href: '/dashboard/intake' }} />
+          )}
+        </div>
+
+        {/* Recent Sessions */}
         <div className="bg-card border border-border rounded-lg p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-foreground">Recent Sessions</h2>
@@ -89,26 +124,6 @@ export default async function DashboardPage() {
             <EmptyState label="No sessions yet" action={{ label: 'Start one', href: '/dashboard/sessions' }} />
           )}
         </div>
-
-        {/* Active tasks */}
-        <div className="bg-card border border-border rounded-lg p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-foreground">Active Tasks</h2>
-            <Link href="/dashboard/tasks" className="text-xs text-primary hover:underline underline-offset-4">View board</Link>
-          </div>
-          {activeTasks && activeTasks.length > 0 ? (
-            <ul className="space-y-2">
-              {activeTasks.map((t) => (
-                <li key={t.id} className="flex items-center justify-between px-3 py-2 rounded-md hover:bg-secondary transition-colors">
-                  <span className="text-sm text-foreground truncate">{t.title}</span>
-                  <PriorityBadge priority={t.priority} />
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <EmptyState label="No active tasks" action={{ label: 'Create task', href: '/dashboard/tasks' }} />
-          )}
-        </div>
       </div>
 
       {/* Quick links */}
@@ -116,9 +131,9 @@ export default async function DashboardPage() {
         <h2 className="text-sm font-semibold text-foreground mb-4">Quick access</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {[
-            { label: 'Prompt Studio', desc: 'Refine and save prompts', href: '/dashboard/prompts' },
+            { label: 'Architecture Intake', desc: 'Start new request workflow', href: '/dashboard/intake' },
+            { label: 'View Requests', desc: 'Manage all architecture requests', href: '/dashboard/requests' },
             { label: 'Task Board', desc: 'Kanban for agent tasks', href: '/dashboard/tasks' },
-            { label: 'Architect', desc: 'Decompose goals into steps', href: '/dashboard/architect' },
           ].map((q) => (
             <Link
               key={q.href}
@@ -135,6 +150,25 @@ export default async function DashboardPage() {
   )
 }
 
+function RequestStatusBadge({ status }: { status: string }) {
+  const statusMap: Record<string, string> = {
+    draft: 'bg-slate-100 text-slate-700',
+    analyzing: 'bg-blue-100 text-blue-700',
+    waiting_for_clarification: 'bg-amber-100 text-amber-700',
+    extracting: 'bg-purple-100 text-purple-700',
+    generating_stacks: 'bg-indigo-100 text-indigo-700',
+    generating_architecture: 'bg-cyan-100 text-cyan-700',
+    ready: 'bg-emerald-100 text-emerald-700',
+    failed: 'bg-red-100 text-red-700',
+    resumed: 'bg-orange-100 text-orange-700',
+  }
+  return (
+    <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${statusMap[status] ?? 'bg-slate-100 text-slate-700'}`}>
+      {status.replace(/_/g, ' ')}
+    </span>
+  )
+}
+
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     active: 'bg-orange-100 text-orange-700',
@@ -144,19 +178,6 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${map[status] ?? 'bg-zinc-100 text-zinc-600'}`}>
       {status}
-    </span>
-  )
-}
-
-function PriorityBadge({ priority }: { priority: string }) {
-  const map: Record<string, string> = {
-    high: 'bg-red-100 text-red-700',
-    medium: 'bg-amber-100 text-amber-700',
-    low: 'bg-zinc-100 text-zinc-600',
-  }
-  return (
-    <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${map[priority] ?? 'bg-zinc-100 text-zinc-600'}`}>
-      {priority}
     </span>
   )
 }
