@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
 
       // Generate requirements using Groq
       const { object: result } = await generateObject({
-        model: groq('mixtral-8x7b-32768'),
+        model: groq('llama-3.3-70b-versatile'),
         schema: RequirementsSchema,
         prompt: `Based on the project brief and clarifying answers provided, extract and structure the key requirements:
 
