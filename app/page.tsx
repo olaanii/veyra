@@ -429,7 +429,7 @@ export default async function HomePage() {
 
       {/* ======================= Footer ======================= */}
       <footer className="border-t border-zinc-200 bg-zinc-50">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-center gap-4">
           <div className="flex items-center gap-3">
             <Logo size={22} href="/" />
             <span className="text-[12px] text-zinc-400">

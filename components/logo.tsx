@@ -68,7 +68,7 @@ export function Logo({
         {Mark}
         <span className="flex flex-col leading-none">
           <span
-            className={cn('font-semibold tracking-tight', wordmarkColor)}
+            className={cn('font-semibold tracking-tight pt-2', wordmarkColor)}
             style={{ fontSize: Math.max(14, size * 0.6) }}
           >
             Veyra
