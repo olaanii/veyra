@@ -429,13 +429,13 @@ export default async function HomePage() {
 
       {/* ======================= Footer ======================= */}
       <footer className="border-t border-zinc-200 bg-zinc-50">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Logo size={22} href="/" />
-            <span className="text-[12px] text-zinc-400">
-              built by olani.me @ 2026
-            </span>
           </div>
+          <span className="text-[12px] text-zinc-400">
+            built by olani.me @ 2026
+          </span>
           <div className="flex items-center gap-5 text-[13px] text-zinc-500">
             <a href="#" className="hover:text-zinc-900 transition-colors">
               Privacy
