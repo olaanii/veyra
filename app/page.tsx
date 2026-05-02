@@ -85,17 +85,6 @@ export default async function HomePage() {
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-20 pb-24 lg:pt-28 lg:pb-32">
           <div className="flex flex-col items-center text-center max-w-4xl mx-auto gap-7">
-            {/* Pill badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-zinc-200 shadow-sm">
-              <span className="relative flex w-1.5 h-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-500"></span>
-              </span>
-              <span className="text-[12px] font-medium text-zinc-700 tracking-tight">
-                Built on Vercel WDK · Track 1 Hackathon
-              </span>
-            </div>
-
             {/* Headline */}
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-semibold text-zinc-900 tracking-[-0.03em] leading-[1.05] text-balance">
               Learn to talk to{' '}
