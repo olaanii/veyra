@@ -90,38 +90,68 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get request, requirements, and stack info
-    const { data: request } = await supabase
-      .from('requests')
-      .select('*')
-      .eq('id', requestId)
-      .eq('user_id', user.id)
-      .single()
-
-    const { data: requirements } = await supabase
-      .from('requirements')
-      .select('*')
-      .eq('request_id', requestId)
-
-    const requirementsText = requirements
-      ?.map(r => `${r.title}: ${r.description} (${r.priority})`)
-      .join('\n') || ''
-
-    // Create architecture package record
-    const { data: pkg, error: pkgError } = await supabase
-      .from('architecture_packages')
+    // Create a workflow job to track this architect operation
+    const { data: job, error: jobError } = await supabase
+      .from('workflow_jobs')
       .insert({
         request_id: requestId,
         user_id: user.id,
-        selected_stack_name: selectedStackName || 'Custom',
-        status: 'generating',
+        job_type: 'architect',
+        status: 'running',
+        started_at: new Date().toISOString(),
+        input_params: { selectedStackName },
       })
       .select()
       .single()
 
-    if (pkgError || !pkg) {
-      return NextResponse.json({ error: 'Failed to create architecture package' }, { status: 500 })
+    if (jobError) {
+      console.error('[v0] Failed to create architect job:', jobError)
     }
+
+    try {
+      // Get request, requirements, and stack info
+      const { data: request } = await supabase
+        .from('requests')
+        .select('*')
+        .eq('id', requestId)
+        .eq('user_id', user.id)
+        .single()
+
+      const { data: requirements } = await supabase
+        .from('requirements')
+        .select('*')
+        .eq('request_id', requestId)
+
+      const requirementsText = requirements
+        ?.map(r => `${r.title}: ${r.description} (${r.priority})`)
+        .join('\n') || ''
+
+      // Create architecture package record
+      const { data: pkg, error: pkgError } = await supabase
+        .from('architecture_packages')
+        .insert({
+          request_id: requestId,
+          user_id: user.id,
+          selected_stack_name: selectedStackName || 'Custom',
+          status: 'generating',
+        })
+        .select()
+        .single()
+
+      if (pkgError || !pkg) {
+        // Update job to failed
+        if (job) {
+          await supabase
+            .from('workflow_jobs')
+            .update({
+              status: 'failed',
+              error_message: 'Failed to create architecture package',
+              completed_at: new Date().toISOString(),
+            })
+            .eq('id', job.id)
+        }
+        return NextResponse.json({ error: 'Failed to create architecture package' }, { status: 500 })
+      }
 
     // Task 1: Generate requirements summary
     const { text: requirementsSummary } = await generateText({
@@ -252,17 +282,46 @@ Identify technical risks, unknowns, and mitigation strategies.`,
 
     if (updateError) {
       console.error('[v0] Failed to update architecture package:', updateError)
+      // Update job to failed
+      if (job) {
+        await supabase
+          .from('workflow_jobs')
+          .update({
+            status: 'failed',
+            error_message: updateError.message,
+            completed_at: new Date().toISOString(),
+          })
+          .eq('id', job.id)
+      }
       return NextResponse.json({ error: 'Failed to save architecture' }, { status: 500 })
     }
 
-    // Update request status
+    // Update request status to 'generating_architecture'
     await supabase
       .from('requests')
-      .update({ status: 'completed' })
+      .update({ status: 'generating_architecture' })
       .eq('id', requestId)
+
+    // Mark job as completed
+    if (job) {
+      const duration = new Date().getTime() - new Date(job.started_at as string).getTime()
+      await supabase
+        .from('workflow_jobs')
+        .update({
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+          duration_ms: duration,
+          output_data: {
+            architecture_id: pkg.id,
+            components_count: Object.keys(architectureOutline).length,
+          },
+        })
+        .eq('id', job.id)
+    }
 
     return NextResponse.json({
       requestId,
+      jobId: job?.id,
       architectureId: pkg.id,
       message: 'Architecture package generated successfully',
       package: {
@@ -273,6 +332,21 @@ Identify technical risks, unknowns, and mitigation strategies.`,
         confidence_scores: confidenceScores,
       },
     })
+    } catch (error) {
+      console.error('[v0] Error during architecture generation:', error)
+      // Mark job as failed
+      if (job) {
+        await supabase
+          .from('workflow_jobs')
+          .update({
+            status: 'failed',
+            error_message: String(error),
+            completed_at: new Date().toISOString(),
+          })
+          .eq('id', job.id)
+      }
+      throw error
+    }
   } catch (error) {
     console.error('[v0] Architect endpoint error:', error)
     return NextResponse.json(
