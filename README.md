@@ -1,233 +1,240 @@
-# Veyra
+# Veyra - WDK Track 1: Architecture & Prompt Intelligence
 
-**Architect • Prompt • Build**
+**Architect • Extract • Refine • Build**
 
-Veyra is an AI-powered platform that helps developers design system architectures, craft better prompts, and build applications faster. It combines requirement extraction, architectural analysis, prompt optimization, and team collaboration into a unified workflow.
+Veyra is an AI-powered architecture design and prompt intelligence platform built with Vercel Workflows Development Kit (WDK) Track 1. It helps teams go from requirements to production-ready architecture with automated requirements extraction, AI-powered architecture packages, and teaching-first prompt strategies.
 
-## 🚀 Features
+## 🎯 What is This?
 
-### Tier 1: Core Workflow
-- **Request Intake** - Submit requirements and goals
-- **Requirements Extraction** - AI automatically identifies and structures key requirements
-- **Architecture Recommendation** - Get AI-powered tech stack suggestions with detailed reasoning
-- **Code Export** - Export recommendations as markdown or JSON
-- **Session Management** - Save, browse, and manage previous sessions
+Veyra is the **complete workflow for intelligent architecture design**:
+1. **Submit** project brief → **Get clarifying questions** → **Answer them** 
+2. **AI extracts** structured requirements from your responses
+3. **Generate** technology stacks with reasoning and tradeoffs
+4. **Build architecture package** with: outline (5 components), agent tasks, downstream prompts per agent, token/cost estimates, risk assessment, confidence scores
+5. **Export** full PRD with architecture, prompts, examples, and deployment guide
+6. **Materialize** tasks to your kanban board for team implementation
+7. **Track** full async workflow with retry/resume for any failed step
 
-### Tier 2: Teaching & Refinement
-- **Prompt Comparison View** - Side-by-side comparison of prompt iterations with quality deltas
-- **Bad vs Good Examples** - Learn from curated examples showing effective vs ineffective prompts
-- **Confidence Scores** - See confidence ratings (0-100%) on architecture recommendations
-- **Prompt Quality Scoring** - Automatic scoring of prompts with feedback on strengths and improvements
-- **Token/Cost Estimator** - Estimate token usage and API costs for prompts
+## 🏗️ 6 Milestones Delivered
 
-### Tier 3: Team & Analytics
-- **Template Library** - Save and reuse prompt templates with tagging and search
-- **Architecture History** - Track all stack snapshots with full rollback support
-- **Team Collaboration** - Share sessions with team members and assign permission levels (view/comment/edit)
-- **Session Comments** - Threaded discussions and feedback on shared sessions
-- **Analytics Dashboard** - Track quality trends, prompt improvements, and efficiency metrics over time
+### Milestone 1: Architecture Recommendation (COMPLETE)
+- Request intake flow with brief capture
+- Stack recommendation with tradeoffs, pros/cons
+- Export as markdown/JSON with full reasoning
 
-## 🛠️ Tech Stack
+### Milestone 2: Clarifying Questions & Requirements (COMPLETE)
+- AI generates 5-7 context-specific clarifying questions
+- Structured requirements extraction from Q&A
+- Persistent storage with status tracking
+
+### Milestone 3: Architecture Package Workflow (COMPLETE)
+- Orchestrated 8-output architecture generation:
+  - Requirements summary → Architecture outline (5 components) 
+  - Agent task breakdown → Downstream prompts (6 agent types)
+  - Token/cost estimates → Risk assessment → Confidence scoring
+- JSONB storage for nested structures
+- Independent section regeneration (any part can be re-run)
+
+### Milestone 4: Async Resumability (COMPLETE)
+- `workflow_jobs` table tracks every async operation
+- Job status polling endpoints
+- Retry (up to 3x), skip, resume actions for failed jobs
+- Request status progression with full timeline
+- Error details and recovery options surfaced in UI
+
+### Milestone 5: Teaching & Demo Polish (COMPLETE)
+- PromptComparison component: bad vs improved prompts side-by-side
+- Dashboard redesigned to emphasize Requests over sessions
+- Prompt Strategy section in exports with effectiveness scores
+- Prompt Analysis page listing all architectures with metrics
+- Enhanced markdown with tables, admonitions, and copy-paste prompts
+
+### Milestone 6: Polish & Completeness (COMPLETE)
+- Task materialization: agent tasks auto-create in kanban board
+- Token/cost estimator endpoint with per-agent breakdown
+- Request status model: 11 granular statuses with timeline tracking
+- README updated with full API docs and deployment guide
+- Task board polished with architecture links and subtask support
+
+## 🚀 Tech Stack
 
 - **Frontend**: Next.js 16 (App Router), React 19, TypeScript
-- **UI**: Tailwind CSS v4, shadcn/ui components, Radix UI primitives
-- **Backend**: Next.js API Routes, Supabase (PostgreSQL + Auth)
-- **AI/ML**: 
-  - Groq for fast inference (scoring workflows)
-  - AI SDK 6 for chat and generation
-  - @workflow/ai for durable workflows
-- **Database**: Supabase with Row Level Security (RLS)
-- **Analytics**: Recharts, SWR for data fetching
-- **Styling**: Light theme (zinc + orange accent), semantic design tokens
+- **UI**: Tailwind CSS v4, shadcn/ui, Radix UI
+- **Backend**: Next.js API Routes, Groq (inference)
+- **Database**: Supabase PostgreSQL with RLS
+- **AI**: AI SDK 6 with Groq provider
+- **Async**: Supabase polling, job tracking
 
-## 📦 Project Structure
+## 📂 Project Structure
 
 ```
 /app
-  /dashboard          # Protected dashboard routes
-    /page.tsx         # Dashboard home
-    /requests         # Request management
-    /sessions         # Session browser
-    /templates        # Prompt template library
-    /analytics        # Analytics dashboard
-    /layout.tsx       # Dashboard layout with sidebar
-  /auth               # Authentication pages (login/signup)
+  /dashboard
+    /page.tsx                # Overview with Recent Requests
+    /requests/page.tsx       # Request list with live polling
+    /intake/page.tsx         # 6-stage intake flow
+    /tasks/page.tsx          # Kanban board (auto-materialized)
+    /prompt-analysis/page.tsx # Prompt metrics dashboard
   /api
-    /chat             # Chat endpoint
-    /requests         # Request API
-    /sessions         # Session API
-    /tier2            # Scoring and comparison APIs
-    /tier3            # Collaboration and template APIs
-  /workflows          # Durable workflows for scoring
-  page.tsx            # Landing page
-  layout.tsx          # Root layout
-  globals.css         # Design tokens & global styles
+    /intake/
+      /clarify/route.ts      # Generate clarifying questions
+      /extract/route.ts      # Extract requirements from Q&A
+      /recommend-stack/route.ts
+      /architect/route.ts    # 12-subtask orchestration
+      /architect/regenerate/route.ts
+      /architect/get/route.ts
+      /materialize-tasks/route.ts
+      /estimate-tokens/route.ts
+      /export/route.ts       # Full PRD export
+    /intake/jobs/
+      /route.ts              # Job polling & creation
+      /retry/route.ts        # Retry failed jobs
+      /skip/route.ts         # Skip & move to ready
+      /resume/route.ts       # Resume for manual recovery
+    /intake/requests/route.ts
 
-/components
-  /dashboard          # Dashboard-specific components
-  /tier2              # Teaching & refinement components
-  /tier3              # Team & analytics components
-  /ui                 # Reusable UI components (shadcn/ui)
-  logo.tsx            # Veyra brand logo
+/components/dashboard
+  /request-intake-form.tsx
+  /clarifying-qa.tsx
+  /requirements-display.tsx
+  /stack-recommendation.tsx
+  /architecture-package.tsx
+  /prompt-comparison.tsx     # Side-by-side bad/good
+  /job-status-card.tsx       # Job tracking UI
+  /request-list.tsx
+  /request-progress.tsx
 
 /lib
-  /supabase           # Supabase client & utilities
-  types.ts            # TypeScript type definitions
-  utils.ts            # Helper utilities
+  /types.ts                  # Full TypeScript schema
+  /supabase/server.ts
+  /supabase/client.ts
 ```
 
 ## 🗄️ Database Schema
 
 **Core Tables:**
-- `users` - User accounts (via Supabase Auth)
-- `requests` - Architecture requests
-- `stack_options` - Architecture recommendations
-- `sessions` - Chat/conversation sessions
-- `prompt_templates` - Reusable prompt templates
+- `requests` - Architecture requests with 11-status progression + timeline
+- `clarifying_questions` - Generated Q&A for scope clarification
+- `requirements` - Extracted structured requirements
+- `architecture_packages` - Full architecture outputs (8 JSONB fields)
+- `workflow_jobs` - Track every async operation (clarify, extract, architect, regenerate)
+- `tasks` - Kanban board (auto-materialized from agent_tasks)
+- `exports` - Generated PRDs (markdown/JSON)
 
-**Tier 2 Tables:**
-- `prompt_versions` - Track prompt iterations with quality scores
-- `stack_snapshots` - Architecture snapshots with confidence ratings
+**Key Fields:**
+- `requests.status_timeline` - Full progression: draft → analyzing → waiting_for_clarification → extracting → generating_stacks → generating_architecture → ready → finalized
+- `workflow_jobs.status` - pending | running | completed | failed | retrying
+- `architecture_packages.agent_tasks` - 6+ tasks per agent (frontend, backend, db, infra, testing, deployment)
+- `architecture_packages.prompt_examples` - bad/good examples with scores
 
-**Tier 3 Tables:**
-- `session_shares` - Team collaboration and permissions
-- `session_comments` - Threaded feedback and discussions
-- `analytics` - User metrics and quality trends
+## 🔄 API Endpoints
 
-All tables have Row Level Security (RLS) policies enforcing user isolation.
+### Intake Workflow
+- `POST /api/intake` - Create request
+- `GET /api/intake/requests` - List all requests
+- `POST /api/intake/clarify` - Generate clarifying questions
+- `POST /api/intake/extract` - Extract requirements from Q&A
+- `POST /api/intake/recommend-stack` - Get tech stacks
+- `POST /api/intake/architect` - Generate full architecture package
+- `POST /api/intake/architect/regenerate` - Regenerate section
+- `GET /api/intake/architect?id=...` - Fetch specific package
+- `POST /api/intake/materialize-tasks` - Auto-create kanban tasks
+- `POST /api/intake/estimate-tokens` - Token/cost breakdown
+- `POST /api/intake/export` - Export PRD
 
-## 🔄 Workflows
+### Job Management
+- `GET /api/intake/jobs?requestId=...` - Poll job status
+- `POST /api/intake/jobs` - Create new job
+- `POST /api/intake/jobs/retry` - Retry failed job
+- `POST /api/intake/jobs/skip` - Skip step
+- `POST /api/intake/jobs/resume` - Resume request
 
-**Durable Workflows** (using @workflow/ai):
-- `score-prompt-quality.ts` - Groq AI scores prompts with detailed feedback
-- `score-stack-confidence.ts` - Groq AI rates architecture confidence with reasoning
+## 🎯 Key Features
 
-## 🎨 Design System
+### Requirements to Architecture in One Flow
+Submit brief → Answer AI questions → Get extracted requirements → Pick tech stack → Generate architecture package with all agent prompts, tasks, estimates, and risks
 
-- **Colors**: Light theme with zinc neutrals and orange primary (#FF6B35)
-- **Typography**: 2 font families (Geist sans, Geist Mono)
-- **Layout**: Flexbox-first, responsive mobile-to-desktop
-- **Icons**: Lucide React icons throughout
-- **Theming**: Semantic design tokens (background, card, primary, etc.)
+### Intelligent Regeneration
+Re-run any section independently: just requirements summary, just prompts, just risk assessment, just confidence scores — full lineage preserved
 
-## 🔐 Authentication
+### Teaching-First Prompts
+Every architecture package includes bad vs improved prompt examples showing *why* effective prompts work better. Scored for effectiveness.
 
-- **Provider**: Supabase Auth
-- **Session**: HTTP-only cookies
-- **Protected Routes**: Dashboard requires authenticated session
-- **Public Routes**: Landing page, auth pages
+### Full Async Observability
+Every step (clarify, extract, architect, regenerate) is tracked as a workflow job. Failed steps show errors with retry/skip/resume options. Full timeline on requests.
+
+### Copy-Paste Ready Exports
+PRD exports include:
+- Requirements table
+- Architecture outline per component
+- Agent task breakdown with subtasks
+- Downstream prompt per agent (ready to paste to team)
+- Risk assessment with mitigations
+- Token/cost estimates with reasoning
+- Bad vs improved prompt examples
+
+### Auto-Materialized Tasks
+Agent tasks automatically create kanban cards with architecture source link, subtasks, and downstream prompt button.
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+ (Veyra uses Next.js 16)
-- Supabase project (database + auth)
-- Groq API key (for scoring workflows)
+- Node.js 18+
+- Supabase project
+- Groq API key
 
 ### Setup
 
-1. **Clone and install**
-   ```bash
-   git clone <repo>
-   cd veyra
-   npm install
-   ```
-
-2. **Environment variables**
-   Create `.env.local`:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
-   GROQ_API_KEY=your_groq_api_key
-   NEXT_PUBLIC_APP_URL=http://localhost:3000
-   ```
-
-3. **Database setup**
-   - Create Supabase project
-   - Run migrations (schema is applied automatically)
-   - Enable RLS on all tables
-
-4. **Run development server**
-   ```bash
-   npm run dev
-   ```
-   Open [http://localhost:3000](http://localhost:3000)
-
-## 📖 API Endpoints
-
-### Authentication
-- `POST /api/auth/signin` - Sign in with email/password
-- `POST /api/auth/signup` - Create new account
-- `POST /api/auth/signout` - Sign out
-
-### Chat & Requests
-- `POST /api/chat` - Stream chat messages
-- `GET /api/requests` - List all requests
-- `POST /api/requests` - Create new request
-- `GET /api/requests/:id` - Get request details
-
-### Sessions
-- `GET /api/sessions` - List user sessions
-- `POST /api/sessions` - Create session
-- `GET /api/sessions/:id` - Get session details
-
-### Tier 2 (Scoring)
-- `POST /api/tier2/score-prompt` - Score and save prompt versions
-- `POST /api/tier2/score-stack` - Score stack confidence
-- `GET /api/tier2/prompt-versions` - Compare prompt iterations
-- `GET /api/tier2/stack-snapshots` - Get architecture history
-
-### Tier 3 (Collaboration)
-- `POST /api/tier3/share-session` - Share session with team members
-- `POST /api/tier3/session-comments` - Add comments/feedback
-- `GET /api/tier3/prompt-templates` - Search template library
-- `POST /api/tier3/analytics` - Track metrics
-
-## 🧪 Testing
-
-Run tests:
 ```bash
-npm run test
+# Install
+npm install
+
+# .env.local
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+GROQ_API_KEY=...
+
+# Run
+npm run dev
+# Open http://localhost:3000
 ```
 
-Run linter:
+## 📊 Usage Flow
+
+1. **Dashboard** → Click "New Request"
+2. **Submit Brief** → E.g. "E-commerce platform with real-time inventory"
+3. **Get Questions** → AI asks about scale, integrations, timeline
+4. **Answer Q&A** → Provide context
+5. **Extract Requirements** → AI structures them
+6. **Pick Stack** → Choose recommended architecture
+7. **Generate Architecture** → Full package with all 8 outputs
+8. **Review Prompts** → See bad vs improved examples
+9. **Export PRD** → Share with team
+10. **View Tasks** → Kanban board auto-populated with agent tasks
+11. **Track Progress** → Request list shows live status with job timeline
+
+## 🔍 Deployment
+
+Configured for **Vercel**:
 ```bash
-npm run lint
+git push origin main
+# Auto-deploys to Vercel
 ```
 
-## 🚢 Deployment
+Environment variables in Vercel dashboard Settings → Environment Variables.
 
-The project is configured for **Vercel** deployment:
+## 📚 Key Docs
 
-1. Connect GitHub repo to Vercel
-2. Add environment variables in Vercel settings
-3. Merge to `main` branch to auto-deploy
-4. Vercel Analytics enabled for monitoring
+- [Next.js 16](https://nextjs.org/docs)
+- [Supabase](https://supabase.com/docs)
+- [Groq API](https://console.groq.com/docs)
+- [AI SDK 6](https://sdk.vercel.ai)
 
-Production URL: [veyra.vercel.app](https://veyra.vercel.app)
+## 📝 License
 
-## 📚 Documentation
-
-- [Next.js Docs](https://nextjs.org/docs)
-- [Supabase Docs](https://supabase.com/docs)
-- [Groq API Docs](https://console.groq.com/docs)
-- [AI SDK Docs](https://sdk.vercel.ai)
-- [v0 Docs](https://v0.app/docs)
-
-## 👥 Team
-
-Built by **Olani** @ 2026
-
-## 📄 License
-
-MIT License - see LICENSE file for details
-
-## 🔗 Links
-
-- **Live Site**: [veyra.vercel.app](https://veyra.vercel.app)
-- **GitHub**: [olaanii/veyra](https://github.com/olaanii/veyra)
-- **v0 Project**: [Continue on v0](https://v0.app/chat/projects/prj_lWTrqJVO2us5mHFrKU5x9Ypl0UEr)
+MIT
 
 ---
 
-**Veyra** — The complete workflow for architecting, prompting, and building with AI.
+**Veyra** — From brief to architecture to prompts. Built with Vercel WDK Track 1.

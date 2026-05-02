@@ -6,12 +6,13 @@ import { RequestIntakeForm } from '@/components/dashboard/request-intake-form'
 import { ClarifyingQA } from '@/components/dashboard/clarifying-qa'
 import { RequirementsDisplay } from '@/components/dashboard/requirements-display'
 import { StackRecommendation } from '@/components/dashboard/stack-recommendation'
+import { ArchitecturePackage } from '@/components/dashboard/architecture-package'
 import { ExportPreview } from '@/components/dashboard/export-preview'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import type { Request, ClarifyingQuestion, Requirement, StackOption, Export } from '@/lib/types'
+import type { Request, ClarifyingQuestion, Requirement, StackOption, Export, Tables } from '@/lib/types'
 
-type Stage = 'intake' | 'clarifying' | 'requirements' | 'stacks' | 'export'
+type Stage = 'intake' | 'clarifying' | 'requirements' | 'stacks' | 'architecture' | 'export'
 
 export default function IntakePage() {
   const router = useRouter()
@@ -20,6 +21,7 @@ export default function IntakePage() {
   const [questions, setQuestions] = useState<ClarifyingQuestion[]>([])
   const [requirements, setRequirements] = useState<Requirement[]>([])
   const [stacks, setStacks] = useState<StackOption[]>([])
+  const [architecture, setArchitecture] = useState<Tables<'architecture_packages'> | null>(null)
   const [exportData, setExportData] = useState<Export | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [selectedStack, setSelectedStack] = useState<string | null>(null)
@@ -72,37 +74,11 @@ export default function IntakePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requestId: request?.id, answers }),
       })
-
-      // Simulate getting requirements (in real app, would poll workflow)
-      const mockRequirements: Requirement[] = [
-        {
-          id: '1',
-          request_id: request?.id || '',
-          user_id: '',
-          category: 'functional',
-          title: 'User Authentication',
-          description: 'Support email/password signup and login',
-          priority: 'critical',
-          status: 'active',
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: '2',
-          request_id: request?.id || '',
-          user_id: '',
-          category: 'performance',
-          title: 'API Response Time',
-          description: 'All endpoints must respond in <500ms',
-          priority: 'high',
-          status: 'active',
-          created_at: new Date().toISOString(),
-        },
-      ]
-
-      setRequirements(mockRequirements)
+      const { requirements: extractedRequirements } = await res.json()
+      setRequirements(extractedRequirements || [])
       setStage('requirements')
     } catch (error) {
-      console.error('Error:', error)
+      console.error('[v0] Error extracting requirements:', error)
     } finally {
       setIsLoading(false)
     }
@@ -111,30 +87,37 @@ export default function IntakePage() {
   const handleRecommendStack = async () => {
     setIsLoading(true)
     try {
-      // Simulate getting stack recommendations
-      const mockStacks: StackOption[] = [
-        {
-          id: '1',
-          request_id: request?.id || '',
-          user_id: '',
-          title: 'Modern SaaS Stack',
-          description: 'Next.js + TypeScript + Supabase',
-          pros: ['Fast development', 'Scalable', 'Modern tooling', 'Great DX'],
-          cons: ['Requires Node.js knowledge', 'PostgreSQL learning curve'],
-          estimated_effort: '6-8 weeks',
-          estimated_cost: '$50-200/month',
-          risk_level: 'low',
-          recommendation_reason: 'Best for rapid development with modern best practices',
-          rank: 1,
-          created_at: new Date().toISOString(),
-        },
-      ]
+      const res = await fetch('/api/intake/recommend-stack', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId: request?.id }),
+      })
+      const { recommendations } = await res.json()
 
-      setStacks(mockStacks)
-      setSelectedStack(mockStacks[0].id)
+      // Map from stack_recommendations schema to StackOption type
+      const stackOptions: StackOption[] = recommendations.map((r: any) => ({
+        id: r.id,
+        request_id: r.request_id,
+        user_id: r.user_id,
+        title: r.stack_name,
+        description: r.description,
+        pros: r.pros,
+        cons: r.cons,
+        estimated_effort: r.effort_estimate,
+        estimated_cost: 'TBD',
+        risk_level: r.risk_level,
+        recommendation_reason: r.reasoning,
+        rank: 1,
+        created_at: r.created_at,
+      }))
+
+      setStacks(stackOptions)
+      if (stackOptions.length > 0) {
+        setSelectedStack(stackOptions[0].id)
+      }
       setStage('stacks')
     } catch (error) {
-      console.error('Error:', error)
+      console.error('[v0] Error generating stack recommendations:', error)
     } finally {
       setIsLoading(false)
     }
@@ -158,6 +141,31 @@ export default function IntakePage() {
     }
   }
 
+  const handleArchitect = async () => {
+    setIsLoading(true)
+    try {
+      const res = await fetch('/api/intake/architect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requestId: request?.id,
+          selectedStackName: stacks.find(s => s.id === selectedStack)?.title,
+        }),
+      })
+      const { architectureId } = await res.json()
+
+      // Fetch the full architecture package
+      const archRes = await fetch(`/api/intake/architect?id=${architectureId}`)
+      const archData = await archRes.json()
+      setArchitecture(archData)
+      setStage('architecture')
+    } catch (error) {
+      console.error('[v0] Error generating architecture:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-3xl mx-auto">
@@ -171,15 +179,15 @@ export default function IntakePage() {
 
         {/* Progress */}
         <div className="flex gap-2 mb-8">
-          {(['intake', 'clarifying', 'requirements', 'stacks', 'export'] as const).map((s) => (
+          {(['intake', 'clarifying', 'requirements', 'stacks', 'architecture', 'export'] as const).map((s) => (
             <div
               key={s}
               className={`flex-1 h-2 rounded-full transition-colors ${
                 stage === s
                   ? 'bg-primary'
-                  : ['intake', 'clarifying', 'requirements', 'stacks'].includes(s) &&
-                      ['intake', 'clarifying', 'requirements', 'stacks', 'export'].indexOf(s) <
-                        ['intake', 'clarifying', 'requirements', 'stacks', 'export'].indexOf(stage)
+                  : ['intake', 'clarifying', 'requirements', 'stacks', 'architecture'].includes(s) &&
+                      ['intake', 'clarifying', 'requirements', 'stacks', 'architecture', 'export'].indexOf(s) <
+                        ['intake', 'clarifying', 'requirements', 'stacks', 'architecture', 'export'].indexOf(stage)
                     ? 'bg-primary/50'
                     : 'bg-border'
               }`}
@@ -230,9 +238,22 @@ export default function IntakePage() {
                 stacks={stacks}
                 selectedId={selectedStack || undefined}
                 onSelect={(stack) => setSelectedStack(stack.id)}
-                onExport={handleExport}
-                isExporting={isLoading}
+                onExport={() => {}}
+                isExporting={false}
               />
+              <Button onClick={handleArchitect} disabled={isLoading || !selectedStack} className="w-full mt-6">
+                {isLoading ? 'Generating Architecture...' : 'Generate Architecture Package'}
+              </Button>
+            </div>
+          )}
+
+          {stage === 'architecture' && architecture && (
+            <div>
+              <h2 className="text-xl font-semibold text-foreground mb-4">Architecture Package</h2>
+              <ArchitecturePackage architecture={architecture} />
+              <Button onClick={handleExport} disabled={isLoading} className="w-full mt-6">
+                {isLoading ? 'Exporting...' : 'Export Full Documentation'}
+              </Button>
             </div>
           )}
 
