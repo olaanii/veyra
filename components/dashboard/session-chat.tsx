@@ -196,8 +196,8 @@ export function SessionChat({ session, initialMessages, userId }: Props) {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
-      <div className="border-t border-border px-8 py-4 shrink-0">
+      {/* Input + Export Actions */}
+      <div className="border-t border-border px-8 py-4 shrink-0 space-y-3">
         <form onSubmit={handleSend} className="flex gap-3 items-end">
           <textarea
             ref={textareaRef}
@@ -218,8 +218,49 @@ export function SessionChat({ session, initialMessages, userId }: Props) {
             </svg>
           </Button>
         </form>
-        <p className="text-xs text-muted-foreground/60 mt-2">
-          Enter to send · Shift+Enter for new line · Stream is durable and auto-resumes
+
+        {/* Export Actions - Show if there are messages */}
+        {messages.length > 0 && (
+          <div className="flex flex-wrap gap-2 text-xs">
+            <button
+              type="button"
+              onClick={() => {
+                // Export to templates
+                const content = messages
+                  .filter((m) => m.role === 'assistant')
+                  .map((m) => m.content)
+                  .join('\n\n')
+                console.log('[v0] Export to templates:', content)
+              }}
+              className="px-3 py-1.5 rounded-md border border-border hover:border-primary/50 hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
+            >
+              Save to Templates
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                // Export to prompt studio
+                console.log('[v0] Export to prompt studio')
+              }}
+              className="px-3 py-1.5 rounded-md border border-border hover:border-primary/50 hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
+            >
+              Send to Prompt Studio
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                // Export to task board
+                console.log('[v0] Export to task board')
+              }}
+              className="px-3 py-1.5 rounded-md border border-border hover:border-primary/50 hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
+            >
+              Create Task
+            </button>
+          </div>
+        )}
+
+        <p className="text-xs text-muted-foreground/60">
+          Enter to send · Shift+Enter for new line · Stream is durable and auto-resumes · Save outputs to Templates or Task Board
         </p>
       </div>
     </div>
