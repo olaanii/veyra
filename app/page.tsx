@@ -453,7 +453,7 @@ export default async function HomePage() {
             </div>
             <span className="text-[13px] text-zinc-700 font-medium">Veyra</span>
             <span className="text-[12px] text-zinc-400">
-              Built with Vercel WDK · Supabase · Next.js
+              built by olani.me @ 2026
             </span>
           </div>
           <div className="flex items-center gap-5 text-[13px] text-zinc-500">
