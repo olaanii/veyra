@@ -6,9 +6,11 @@ import type { Session } from '@/lib/types'
 interface Props {
   initialSessions: Session[]
   userId: string
+  linkedRequestId?: string | null
+  linkedArchitectureId?: string | null
 }
 
-export function AgentCoachingWorkspace({ initialSessions, userId }: Props) {
+export function AgentCoachingWorkspace({ initialSessions, userId, linkedRequestId, linkedArchitectureId }: Props) {
   return (
     <div className="space-y-6">
       {/* Info Banner */}
@@ -40,7 +42,12 @@ export function AgentCoachingWorkspace({ initialSessions, userId }: Props) {
       </div>
 
       {/* Sessions List */}
-      <SessionsList initialSessions={initialSessions} userId={userId} />
+      <SessionsList 
+        initialSessions={initialSessions} 
+        userId={userId} 
+        linkedRequestId={linkedRequestId}
+        linkedArchitectureId={linkedArchitectureId}
+      />
     </div>
   )
 }

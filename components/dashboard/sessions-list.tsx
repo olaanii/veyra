@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input'
 interface Props {
   initialSessions: Session[]
   userId: string
+  linkedRequestId?: string | null
+  linkedArchitectureId?: string | null
 }
 
 type AgentMode = 'coach' | 'code_agent' | 'research_agent' | 'backend_agent' | 'frontend_agent' | 'tester' | 'deployment'
@@ -24,7 +26,7 @@ const AGENT_MODES: Record<AgentMode, { label: string; description: string; icon:
   deployment: { label: 'Deployment', description: 'Infrastructure and DevOps guidance', icon: '🚀' },
 }
 
-export function SessionsList({ initialSessions, userId }: Props) {
+export function SessionsList({ initialSessions, userId, linkedRequestId, linkedArchitectureId }: Props) {
   const router = useRouter()
   const [sessions, setSessions] = useState<Session[]>(initialSessions)
   const [creating, setCreating] = useState(false)
@@ -44,7 +46,12 @@ export function SessionsList({ initialSessions, userId }: Props) {
         title: newTitle.trim(), 
         goal: newGoal.trim() || null, 
         user_id: userId,
-        metadata: { agent_mode: selectedAgent },
+        request_id: linkedRequestId || null,
+        architecture_id: linkedArchitectureId || null,
+        metadata: { 
+          agent_mode: selectedAgent,
+          source: linkedRequestId ? 'intake' : 'direct',
+        },
       })
       .select()
       .single()
@@ -153,6 +160,7 @@ export function SessionsList({ initialSessions, userId }: Props) {
           {sessions.map((s) => {
             const agentMode = (s.metadata as any)?.agent_mode || 'coach'
             const agentInfo = AGENT_MODES[agentMode as AgentMode]
+            const isLinkedToIntake = s.request_id || (s.metadata as any)?.source === 'intake'
             return (
               <li
                 key={s.id}
@@ -162,7 +170,14 @@ export function SessionsList({ initialSessions, userId }: Props) {
                   <div className="flex items-center gap-3">
                     <span className="text-lg">{agentInfo?.icon || '🎓'}</span>
                     <div className="flex-1 min-w-0">
-                      <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors truncate block">{s.title}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors truncate">{s.title}</span>
+                        {isLinkedToIntake && (
+                          <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded shrink-0">
+                            From Intake
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-muted-foreground">{agentInfo?.label || 'Coach'}</p>
                     </div>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${statusColor[s.status]}`}>{s.status}</span>

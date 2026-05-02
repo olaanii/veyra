@@ -348,21 +348,26 @@ export default function IntakePage() {
               
               <ArchitecturePackage architecture={architecture} />
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
                 <Button 
                   onClick={() => router.push('/dashboard/tasks')} 
-                  className="md:col-span-1"
                   variant="outline"
                 >
                   View Tasks
                 </Button>
-                <Button onClick={handleExport} disabled={isLoading} className="md:col-span-1">
-                  {isLoading ? 'Exporting...' : 'Export Full Documentation'}
+                <Button 
+                  onClick={() => router.push(`/dashboard/sessions?requestId=${request?.id}&architectureId=${architecture.id}`)} 
+                  variant="outline"
+                >
+                  Start Coaching Session
+                </Button>
+                <Button onClick={handleExport} disabled={isLoading}>
+                  {isLoading ? 'Exporting...' : 'Export Docs'}
                 </Button>
               </div>
               
-              {/* Hidden: Re-materialize button for advanced users */}
-              <div className="mt-4 pt-4 border-t border-border">
+              {/* Secondary actions */}
+              <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
                 <button 
                   onClick={handleMaterializeTasks}
                   disabled={isLoading}
@@ -370,6 +375,12 @@ export default function IntakePage() {
                 >
                   Re-materialize tasks (if needed)
                 </button>
+                <a 
+                  href={`/dashboard/prompt-analysis`}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  View Prompt Analysis
+                </a>
               </div>
             </div>
           )}
