@@ -33,8 +33,9 @@ export async function POST(req: NextRequest) {
 
     // Score prompt using Groq
     const { object: result } = await generateObject({
-      model: groq('mixtral-8x7b-32768'),
+      model: groq('llama-3.3-70b-versatile'),
       schema: PromptScoreSchema,
+      mode: 'json',
       prompt: `You are an expert prompt engineer. Analyze the following prompt and score it on quality (0-100), estimate token usage, and provide constructive feedback.
 
 Prompt: "${promptContent}"

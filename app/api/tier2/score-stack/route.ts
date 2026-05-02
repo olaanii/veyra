@@ -34,8 +34,9 @@ export async function POST(req: NextRequest) {
 
     // Score stack using Groq
     const { object: result } = await generateObject({
-      model: groq('mixtral-8x7b-32768'),
+      model: groq('llama-3.3-70b-versatile'),
       schema: StackConfidenceSchema,
+      mode: 'json',
       prompt: `You are a senior software architect. Evaluate this tech stack recommendation and provide a confidence score and analysis.
 
 Stack: "${stackTitle}"

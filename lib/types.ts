@@ -12,6 +12,13 @@ export type Session = {
   status: 'active' | 'completed' | 'archived'
   created_at: string
   updated_at: string
+  request_id?: string | null
+  architecture_id?: string | null
+  metadata?: {
+    agent_mode?: string
+    source?: 'intake' | 'direct' | 'task'
+    linked_task_id?: string
+  }
 }
 
 export type Message = {
@@ -46,6 +53,12 @@ export type PromptTemplate = {
   category: string
   usage_count: number
   created_at: string
+  updated_at?: string
+  is_public?: boolean
+  published_at?: string | null
+  source_template_id?: string | null
+  author_id?: string
+  tags?: string[]
 }
 
 export type Request = {

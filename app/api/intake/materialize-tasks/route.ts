@@ -37,14 +37,42 @@ export async function POST(req: NextRequest) {
       .eq('user_id', user.id)
       .single()
 
+    // Check if tasks already exist for this architecture
+    const { data: existingTasks } = await supabase
+      .from('tasks')
+      .select('id')
+      .eq('architecture_id', architectureId)
+      .eq('user_id', user.id)
+
+    if (existingTasks && existingTasks.length > 0) {
+      console.log('[v0] Tasks already materialized for architecture:', architectureId)
+      return NextResponse.json({
+        success: true,
+        taskCount: existingTasks.length,
+        tasks: existingTasks,
+        message: `Tasks already materialized for this architecture (${existingTasks.length} existing tasks)`,
+        alreadyMaterialized: true,
+      })
+    }
+
     // Extract and create tasks from agent_tasks
     const agentTasks = architecture.agent_tasks || []
+    
+    if (!agentTasks.length) {
+      return NextResponse.json({
+        success: true,
+        taskCount: 0,
+        tasks: [],
+        message: 'No agent tasks found in architecture package',
+      })
+    }
+
     const tasksToCreate = agentTasks.map((task: any, index: number) => ({
       user_id: user.id,
       request_id: architecture.request_id,
       architecture_id: architectureId,
-      title: task.title || task.agent,
-      description: task.description || '',
+      title: task.title || task.agent || 'Unnamed Task',
+      description: task.description || `Implementation task for ${task.agent || 'agent'}`,
       agent: task.agent || 'general',
       priority: task.priority || 'medium',
       status: 'todo',
@@ -56,6 +84,7 @@ export async function POST(req: NextRequest) {
         source: 'architecture_workflow',
         agent_role: task.agent,
         project_context: request?.brief,
+        downstream_prompt: task.downstream_prompt || null,
       },
     }))
 
@@ -67,19 +96,22 @@ export async function POST(req: NextRequest) {
 
     if (insertError) {
       console.error('[v0] Error creating tasks:', insertError)
-      return NextResponse.json({ error: 'Failed to create tasks' }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to create tasks', details: insertError.message }, { status: 500 })
     }
+
+    console.log('[v0] Successfully materialized', createdTasks?.length, 'tasks from architecture:', architectureId)
 
     return NextResponse.json({
       success: true,
       taskCount: createdTasks?.length || 0,
       tasks: createdTasks,
       message: `Materialized ${createdTasks?.length} tasks from architecture package`,
+      alreadyMaterialized: false,
     })
   } catch (error) {
     console.error('[v0] Materialize tasks error:', error)
     return NextResponse.json(
-      { error: 'Failed to materialize tasks' },
+      { error: 'Failed to materialize tasks', details: String(error) },
       { status: 500 }
     )
   }

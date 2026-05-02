@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
 
     // Task 1: Generate requirements summary
     const { text: requirementsSummary } = await generateText({
-      model: groq('mixtral-8x7b-32768'),
+      model: groq('llama-3.3-70b-versatile'),
       prompt: `Summarize these requirements into a 2-3 sentence executive summary:
 
 ${requirementsText}`,
@@ -163,8 +163,9 @@ ${requirementsText}`,
 
     // Task 2: Generate architecture outline
     const { object: architectureOutline } = await generateObject({
-      model: groq('mixtral-8x7b-32768'),
+      model: groq('llama-3.3-70b-versatile'),
       schema: ArchitectureOutlineSchema,
+      mode: 'json',
       prompt: `Design a comprehensive architecture for this project using the stack: ${selectedStackName || 'custom'}
 
 Requirements:
@@ -178,8 +179,9 @@ For each component (frontend, backend, database, infrastructure, devops), provid
 
     // Task 3: Generate agent tasks breakdown
     const { object: agentTasksData } = await generateObject({
-      model: groq('mixtral-8x7b-32768'),
+      model: groq('llama-3.3-70b-versatile'),
       schema: AgentTasksSchema,
+      mode: 'json',
       prompt: `Break down the architecture into concrete tasks for 6 specialized agents.
 
 Architecture:
@@ -196,7 +198,7 @@ For each task, estimate tokens needed and hours to complete.`,
 
     for (const agent of agents) {
       const { text: prompt } = await generateText({
-        model: groq('mixtral-8x7b-32768'),
+        model: groq('llama-3.3-70b-versatile'),
         prompt: `Write a detailed engineering prompt for a ${agent} engineer to implement this architecture.
 
 Architecture outline:
@@ -212,8 +214,9 @@ The prompt should be specific, include implementation details, constraints, and 
 
     // Task 10: Generate prompt examples (bad vs improved)
     const { object: promptExamples } = await generateObject({
-      model: groq('mixtral-8x7b-32768'),
+      model: groq('llama-3.3-70b-versatile'),
       schema: PromptExamplesSchema,
+      mode: 'json',
       prompt: `For this architecture task, provide examples of bad and improved prompts.
 
 Architecture:
@@ -226,8 +229,9 @@ Provide:
 
     // Task 11: Generate risk assessment
     const { object: riskAssessment } = await generateObject({
-      model: groq('mixtral-8x7b-32768'),
+      model: groq('llama-3.3-70b-versatile'),
       schema: RiskAssessmentSchema,
+      mode: 'json',
       prompt: `Assess risks and unknowns for this architecture and stack.
 
 Stack: ${selectedStackName}

@@ -129,8 +129,9 @@ export async function POST(req: NextRequest) {
     // Regenerate selected sections
     if (sections.includes('architecture_outline')) {
       const { object: architectureOutline } = await generateObject({
-        model: groq('mixtral-8x7b-32768'),
+        model: groq('llama-3.3-70b-versatile'),
         schema: ArchitectureOutlineSchema,
+        mode: 'json',
         prompt: `Redesign the architecture for this project using the stack: ${pkg.selected_stack_name}
 
 Requirements:
@@ -146,8 +147,9 @@ Create an improved version with better component separation, clearer responsibil
 
     if (sections.includes('agent_tasks')) {
       const { object: agentTasksData } = await generateObject({
-        model: groq('mixtral-8x7b-32768'),
+        model: groq('llama-3.3-70b-versatile'),
         schema: AgentTasksSchema,
+        mode: 'json',
         prompt: `Regenerate the agent tasks breakdown based on the updated architecture.
 
 Architecture:
@@ -167,7 +169,7 @@ Create more detailed and accurate tasks for each agent.`,
 
       for (const agent of agents) {
         const { text: prompt } = await generateText({
-          model: groq('mixtral-8x7b-32768'),
+          model: groq('llama-3.3-70b-versatile'),
           prompt: `Write an improved engineering prompt for a ${agent} engineer based on this architecture.
 
 Architecture:
@@ -185,8 +187,9 @@ Make it more detailed, specific, and include all necessary context.`,
 
     if (sections.includes('prompt_examples')) {
       const { object: promptExamples } = await generateObject({
-        model: groq('mixtral-8x7b-32768'),
+        model: groq('llama-3.3-70b-versatile'),
         schema: PromptExamplesSchema,
+        mode: 'json',
         prompt: `Generate better examples of bad vs improved prompts for this architecture.
 
 Architecture:
@@ -199,8 +202,9 @@ Provide 3 bad examples with issues and 3 improved versions with explanations.`,
 
     if (sections.includes('risk_assessment')) {
       const { object: riskAssessment } = await generateObject({
-        model: groq('mixtral-8x7b-32768'),
+        model: groq('llama-3.3-70b-versatile'),
         schema: RiskAssessmentSchema,
+        mode: 'json',
         prompt: `Update the risk assessment for this architecture and stack.
 
 Stack: ${pkg.selected_stack_name}
