@@ -28,6 +28,17 @@ export default function IntakePage() {
   const [selectedStack, setSelectedStack] = useState<string | null>(null)
   const [exportFormat, setExportFormat] = useState<'markdown' | 'json'>('markdown')
 
+  const allStages: Stage[] = ['intake', 'clarifying', 'requirements', 'stacks', 'architecture', 'export']
+
+  const stages: Record<Stage, { label: string; description: string; stepNumber: number }> = {
+    intake: { label: 'Intake', description: 'Describe your project', stepNumber: 1 },
+    clarifying: { label: 'Clarify', description: 'Answer questions', stepNumber: 2 },
+    requirements: { label: 'Requirements', description: 'Review extracted needs', stepNumber: 3 },
+    stacks: { label: 'Stack', description: 'Choose technology', stepNumber: 4 },
+    architecture: { label: 'Architecture', description: 'Review design', stepNumber: 5 },
+    export: { label: 'Export', description: 'Download docs', stepNumber: 6 },
+  }
+
   const handleIntakeSubmit = async (data: {
     title: string
     description: string
