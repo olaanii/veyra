@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { cn } from '@/lib/utils'
 import { RequestIntakeForm } from '@/components/dashboard/request-intake-form'
 import { ClarifyingQA } from '@/components/dashboard/clarifying-qa'
 import { RequirementsDisplay } from '@/components/dashboard/requirements-display'
@@ -123,7 +124,16 @@ export default function IntakePage() {
     }
   }
 
-  const handleExport = async () => {
+  const stages: Record<Stage, { label: string; description: string; stepNumber: number }> = {
+    intake: { label: 'Project Brief', description: 'Describe what you want to build', stepNumber: 1 },
+    clarifying: { label: 'Clarify', description: 'Answer questions about your project', stepNumber: 2 },
+    requirements: { label: 'Requirements', description: 'Review extracted requirements', stepNumber: 3 },
+    stacks: { label: 'Tech Stack', description: 'Choose your technology foundation', stepNumber: 4 },
+    architecture: { label: 'Architecture', description: 'Review your system design', stepNumber: 5 },
+    export: { label: 'Export', description: 'Download complete documentation', stepNumber: 6 },
+  }
+
+  const allStages = (['intake', 'clarifying', 'requirements', 'stacks', 'architecture', 'export'] as const)
     setIsLoading(true)
     try {
       const res = await fetch('/api/intake/export', {
@@ -167,37 +177,73 @@ export default function IntakePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-3xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Project Intake</h1>
-          <p className="text-muted-foreground">
-            Transform vague ideas into clear requirements and tech recommendations
-          </p>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+        <div className="max-w-5xl mx-auto px-6 py-6">
+          <h1 className="text-2xl font-bold text-foreground">Veyra Architecture Workflow</h1>
+          <p className="text-sm text-muted-foreground mt-1">Transform your project idea into a complete architecture</p>
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-6 py-8">
+        {/* Progress Steps */}
+        <div className="mb-12">
+          <div className="flex items-center justify-between gap-2 mb-6">
+            {allStages.map((s, idx) => {
+              const currentIdx = allStages.indexOf(stage)
+              const stageData = stages[s]
+              const isCompleted = allStages.indexOf(s) < currentIdx
+              const isCurrent = s === stage
+              
+              return (
+                <div key={s} className="flex flex-col items-center flex-1">
+                  <div className="flex items-center w-full gap-2">
+                    {/* Step Circle */}
+                    <div
+                      className={cn(
+                        'flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-all',
+                        isCurrent
+                          ? 'bg-primary text-primary-foreground ring-4 ring-primary/20'
+                          : isCompleted
+                            ? 'bg-primary/20 text-primary'
+                            : 'bg-border text-muted-foreground',
+                      )}
+                    >
+                      {isCompleted ? (
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      ) : (
+                        stageData.stepNumber
+                      )}
+                    </div>
+                    {/* Connector */}
+                    {idx < allStages.length - 1 && (
+                      <div
+                        className={cn(
+                          'flex-1 h-1 transition-all',
+                          allStages.indexOf(allStages[idx + 1]) <= currentIdx ? 'bg-primary/30' : 'bg-border',
+                        )}
+                      />
+                    )}
+                  </div>
+                  <div className="mt-3 text-center">
+                    <p className="text-sm font-medium text-foreground">{stageData.label}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{stageData.description}</p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
 
-        {/* Progress */}
-        <div className="flex gap-2 mb-8">
-          {(['intake', 'clarifying', 'requirements', 'stacks', 'architecture', 'export'] as const).map((s) => (
-            <div
-              key={s}
-              className={`flex-1 h-2 rounded-full transition-colors ${
-                stage === s
-                  ? 'bg-primary'
-                  : ['intake', 'clarifying', 'requirements', 'stacks', 'architecture'].includes(s) &&
-                      ['intake', 'clarifying', 'requirements', 'stacks', 'architecture', 'export'].indexOf(s) <
-                        ['intake', 'clarifying', 'requirements', 'stacks', 'architecture', 'export'].indexOf(stage)
-                    ? 'bg-primary/50'
-                    : 'bg-border'
-              }`}
-            />
-          ))}
-        </div>
-
-        {/* Content */}
-        <Card className="p-6 border border-border">
-          {stage === 'intake' && (
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Content Area */}
+          <div className="lg:col-span-2">
+            <Card className="p-8 border border-border">
+              {stage === 'intake' && (
             <div>
               <h2 className="text-xl font-semibold text-foreground mb-4">Describe Your Project</h2>
               <RequestIntakeForm onSubmit={handleIntakeSubmit} isLoading={isLoading} />
@@ -282,7 +328,105 @@ export default function IntakePage() {
               </Button>
             </div>
           )}
-        </Card>
+            </Card>
+          </div>
+
+          {/* Teaching Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-24 space-y-4">
+              {/* Teaching Card */}
+              {stage === 'clarifying' && (
+                <Card className="p-4 border border-blue-200 bg-blue-50">
+                  <h3 className="text-sm font-semibold text-blue-900 mb-2">Why We Ask Questions</h3>
+                  <p className="text-xs text-blue-800">
+                    Good clarifying questions help us understand your constraints, priorities, and technical requirements. This leads to better, more tailored architecture recommendations.
+                  </p>
+                </Card>
+              )}
+
+              {stage === 'stacks' && (
+                <Card className="p-4 border border-green-200 bg-green-50">
+                  <h3 className="text-sm font-semibold text-green-900 mb-2">Stack Selection Tips</h3>
+                  <p className="text-xs text-green-800">
+                    Each stack comes with pros, cons, and effort estimates. Choose based on your team's expertise and project constraints. You can regenerate stacks if you need different options.
+                  </p>
+                </Card>
+              )}
+
+              {stage === 'architecture' && (
+                <Card className="p-4 border border-purple-200 bg-purple-50">
+                  <h3 className="text-sm font-semibold text-purple-900 mb-2">Architecture Overview</h3>
+                  <p className="text-xs text-purple-800">
+                    This complete architecture includes component breakdown, implementation tasks for each role, risk assessment, and specialized prompts your team can use immediately.
+                  </p>
+                </Card>
+              )}
+
+              {stage === 'export' && (
+                <Card className="p-4 border border-orange-200 bg-orange-50">
+                  <h3 className="text-sm font-semibold text-orange-900 mb-2">Exporting Your Work</h3>
+                  <p className="text-xs text-orange-800">
+                    Export as Markdown for easy sharing, or JSON for integration with other tools. Your tasks have been auto-materialized to the Task Board for your team.
+                  </p>
+                </Card>
+              )}
+
+              {/* Request Info */}
+              {request && (
+                <Card className="p-4 border border-border">
+                  <h3 className="text-sm font-semibold text-foreground mb-3">Request Info</h3>
+                  <div className="space-y-2 text-xs">
+                    <div>
+                      <p className="text-muted-foreground">Title</p>
+                      <p className="text-foreground font-medium">{request.title}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Status</p>
+                      <p className="text-foreground font-medium capitalize">{request.status}</p>
+                    </div>
+                    {architecture && (
+                      <div>
+                        <p className="text-muted-foreground">Architecture</p>
+                        <p className="text-foreground font-medium">{architecture.selected_stack_name}</p>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              )}
+
+              {/* Quick Help */}
+              <Card className="p-4 border border-border bg-card/50">
+                <h3 className="text-sm font-semibold text-foreground mb-2">Workflow Stages</h3>
+                <ul className="space-y-2 text-xs text-muted-foreground">
+                  <li className="flex gap-2">
+                    <span className="text-primary font-bold">1.</span>
+                    <span>Describe your project briefly</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-primary font-bold">2.</span>
+                    <span>Answer AI clarifying questions</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-primary font-bold">3.</span>
+                    <span>Review extracted requirements</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-primary font-bold">4.</span>
+                    <span>Select your tech stack</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-primary font-bold">5.</span>
+                    <span>Review complete architecture</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-primary font-bold">6.</span>
+                    <span>Export for your team</span>
+                  </li>
+                </ul>
+              </Card>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
