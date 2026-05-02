@@ -1,240 +1,230 @@
-# Veyra - WDK Track 1: Architecture & Prompt Intelligence
+# Veyra
 
-**Architect • Extract • Refine • Build**
+## Transform Your Ideas Into Production-Ready Architecture
 
-Veyra is an AI-powered architecture design and prompt intelligence platform built with Vercel Workflows Development Kit (WDK) Track 1. It helps teams go from requirements to production-ready architecture with automated requirements extraction, AI-powered architecture packages, and teaching-first prompt strategies.
+Veyra is an AI-powered platform that takes your project ideas and automatically generates comprehensive software architectures, complete with technology recommendations, implementation tasks, and team communication strategies.
 
-## 🎯 What is This?
+**From a simple brief to a full architecture package in minutes.**
 
-Veyra is the **complete workflow for intelligent architecture design**:
-1. **Submit** project brief → **Get clarifying questions** → **Answer them** 
-2. **AI extracts** structured requirements from your responses
-3. **Generate** technology stacks with reasoning and tradeoffs
-4. **Build architecture package** with: outline (5 components), agent tasks, downstream prompts per agent, token/cost estimates, risk assessment, confidence scores
-5. **Export** full PRD with architecture, prompts, examples, and deployment guide
-6. **Materialize** tasks to your kanban board for team implementation
-7. **Track** full async workflow with retry/resume for any failed step
+---
 
-## 🏗️ 6 Milestones Delivered
+## What Veyra Does
 
-### Milestone 1: Architecture Recommendation (COMPLETE)
-- Request intake flow with brief capture
-- Stack recommendation with tradeoffs, pros/cons
-- Export as markdown/JSON with full reasoning
+### 1. Understands Your Requirements
+Submit a simple project brief. Veyra asks intelligent clarifying questions to understand your specific needs, constraints, and goals.
 
-### Milestone 2: Clarifying Questions & Requirements (COMPLETE)
-- AI generates 5-7 context-specific clarifying questions
-- Structured requirements extraction from Q&A
-- Persistent storage with status tracking
+### 2. Extracts Key Information
+Based on your answers, Veyra automatically structures and organizes your requirements into a clear, actionable format.
 
-### Milestone 3: Architecture Package Workflow (COMPLETE)
-- Orchestrated 8-output architecture generation:
-  - Requirements summary → Architecture outline (5 components) 
-  - Agent task breakdown → Downstream prompts (6 agent types)
-  - Token/cost estimates → Risk assessment → Confidence scoring
-- JSONB storage for nested structures
-- Independent section regeneration (any part can be re-run)
+### 3. Recommends Technology Stacks
+Get multiple technology stack recommendations with detailed pros/cons, effort estimates, and risk assessments for each option.
 
-### Milestone 4: Async Resumability (COMPLETE)
-- `workflow_jobs` table tracks every async operation
-- Job status polling endpoints
-- Retry (up to 3x), skip, resume actions for failed jobs
-- Request status progression with full timeline
-- Error details and recovery options surfaced in UI
+### 4. Generates Complete Architecture
+Veyra creates a production-ready architecture including:
+- **Architecture Outline** - 5 key system components with responsibilities
+- **Agent Tasks** - Specific implementation tasks for different team members
+- **Team Communication** - Custom prompts and instructions for each engineer (frontend, backend, DevOps, etc.)
+- **Risk Assessment** - Identified risks, unknowns, and mitigation strategies
+- **Cost & Token Estimates** - Realistic effort and token usage predictions
+- **Confidence Scoring** - Veyra's confidence in the architecture choices
 
-### Milestone 5: Teaching & Demo Polish (COMPLETE)
-- PromptComparison component: bad vs improved prompts side-by-side
-- Dashboard redesigned to emphasize Requests over sessions
-- Prompt Strategy section in exports with effectiveness scores
-- Prompt Analysis page listing all architectures with metrics
-- Enhanced markdown with tables, admonitions, and copy-paste prompts
+### 5. Shares Knowledge Through Examples
+Every architecture includes side-by-side comparisons of effective vs ineffective prompts, helping your team understand best practices.
 
-### Milestone 6: Polish & Completeness (COMPLETE)
-- Task materialization: agent tasks auto-create in kanban board
-- Token/cost estimator endpoint with per-agent breakdown
-- Request status model: 11 granular statuses with timeline tracking
-- README updated with full API docs and deployment guide
-- Task board polished with architecture links and subtask support
+### 6. Exports Ready-to-Share Documents
+Export your complete architecture as a polished PRD (Product Requirements Document) with all details, prompts, and examples ready for your team.
 
-## 🚀 Tech Stack
+### 7. Auto-Creates Implementation Tasks
+Tasks automatically appear in your kanban board, pre-populated with all necessary context and downstream prompts for each team member.
 
-- **Frontend**: Next.js 16 (App Router), React 19, TypeScript
-- **UI**: Tailwind CSS v4, shadcn/ui, Radix UI
-- **Backend**: Next.js API Routes, Groq (inference)
-- **Database**: Supabase PostgreSQL with RLS
-- **AI**: AI SDK 6 with Groq provider
-- **Async**: Supabase polling, job tracking
+### 8. Tracks Everything
+Full audit trail of all steps, with ability to regenerate any section, retry failed steps, or resume interrupted workflows.
 
-## 📂 Project Structure
+---
+
+## Key Features
+
+**Intelligent Questions**
+- AI generates context-specific clarifying questions
+- Understands your domain and constraints
+- Extracts structured requirements from your answers
+
+**Smart Recommendations**
+- Multiple technology stack options
+- Detailed reasoning for each recommendation
+- Risk analysis and effort estimates
+- Side-by-side comparison of options
+
+**Complete Architecture Packages**
+- System design with 5 key components
+- Full task breakdown for implementation
+- Custom prompts for 6 different engineer roles
+- Confidence scoring on architectural decisions
+- Risk identification and mitigation strategies
+
+**Teaching Through Examples**
+- Side-by-side prompt comparisons (bad vs improved)
+- Learn why certain prompts are more effective
+- Effectiveness scores for guidance
+- Build better communication patterns with AI
+
+**Team Collaboration**
+- Share full architecture documents with your team
+- Export as markdown for easy distribution
+- Copy-paste ready prompts for each team member
+- Track progress on auto-generated tasks
+
+**Flexible & Iterative**
+- Regenerate any section independently
+- Keep what works, improve what doesn't
+- Retry failed steps automatically
+- Full version history of all work
+
+---
+
+## The Veyra Workflow
 
 ```
-/app
-  /dashboard
-    /page.tsx                # Overview with Recent Requests
-    /requests/page.tsx       # Request list with live polling
-    /intake/page.tsx         # 6-stage intake flow
-    /tasks/page.tsx          # Kanban board (auto-materialized)
-    /prompt-analysis/page.tsx # Prompt metrics dashboard
-  /api
-    /intake/
-      /clarify/route.ts      # Generate clarifying questions
-      /extract/route.ts      # Extract requirements from Q&A
-      /recommend-stack/route.ts
-      /architect/route.ts    # 12-subtask orchestration
-      /architect/regenerate/route.ts
-      /architect/get/route.ts
-      /materialize-tasks/route.ts
-      /estimate-tokens/route.ts
-      /export/route.ts       # Full PRD export
-    /intake/jobs/
-      /route.ts              # Job polling & creation
-      /retry/route.ts        # Retry failed jobs
-      /skip/route.ts         # Skip & move to ready
-      /resume/route.ts       # Resume for manual recovery
-    /intake/requests/route.ts
-
-/components/dashboard
-  /request-intake-form.tsx
-  /clarifying-qa.tsx
-  /requirements-display.tsx
-  /stack-recommendation.tsx
-  /architecture-package.tsx
-  /prompt-comparison.tsx     # Side-by-side bad/good
-  /job-status-card.tsx       # Job tracking UI
-  /request-list.tsx
-  /request-progress.tsx
-
-/lib
-  /types.ts                  # Full TypeScript schema
-  /supabase/server.ts
-  /supabase/client.ts
+1. Create Request
+   ↓
+2. Submit Project Brief
+   ↓
+3. Answer AI Questions
+   ↓
+4. Get Extracted Requirements
+   ↓
+5. Review Stack Recommendations
+   ↓
+6. Select Your Stack
+   ↓
+7. Generate Architecture Package
+   ↓
+8. Review Architecture & Prompts
+   ↓
+9. Export Complete PRD
+   ↓
+10. Tasks Auto-Materialize to Board
+   ↓
+11. Team Implements with Provided Prompts
 ```
 
-## 🗄️ Database Schema
+---
 
-**Core Tables:**
-- `requests` - Architecture requests with 11-status progression + timeline
-- `clarifying_questions` - Generated Q&A for scope clarification
-- `requirements` - Extracted structured requirements
-- `architecture_packages` - Full architecture outputs (8 JSONB fields)
-- `workflow_jobs` - Track every async operation (clarify, extract, architect, regenerate)
-- `tasks` - Kanban board (auto-materialized from agent_tasks)
-- `exports` - Generated PRDs (markdown/JSON)
+## Who Should Use Veyra
 
-**Key Fields:**
-- `requests.status_timeline` - Full progression: draft → analyzing → waiting_for_clarification → extracting → generating_stacks → generating_architecture → ready → finalized
-- `workflow_jobs.status` - pending | running | completed | failed | retrying
-- `architecture_packages.agent_tasks` - 6+ tasks per agent (frontend, backend, db, infra, testing, deployment)
-- `architecture_packages.prompt_examples` - bad/good examples with scores
+**Product Managers** - Quickly validate technical feasibility and get detailed architecture documentation
 
-## 🔄 API Endpoints
+**Technical Leads** - Generate comprehensive architecture packages with risk assessment and implementation guidance
 
-### Intake Workflow
-- `POST /api/intake` - Create request
-- `GET /api/intake/requests` - List all requests
-- `POST /api/intake/clarify` - Generate clarifying questions
-- `POST /api/intake/extract` - Extract requirements from Q&A
-- `POST /api/intake/recommend-stack` - Get tech stacks
-- `POST /api/intake/architect` - Generate full architecture package
-- `POST /api/intake/architect/regenerate` - Regenerate section
-- `GET /api/intake/architect?id=...` - Fetch specific package
-- `POST /api/intake/materialize-tasks` - Auto-create kanban tasks
-- `POST /api/intake/estimate-tokens` - Token/cost breakdown
-- `POST /api/intake/export` - Export PRD
+**Startup Founders** - Turn your idea into a structured technical plan without hiring architects
 
-### Job Management
-- `GET /api/intake/jobs?requestId=...` - Poll job status
-- `POST /api/intake/jobs` - Create new job
-- `POST /api/intake/jobs/retry` - Retry failed job
-- `POST /api/intake/jobs/skip` - Skip step
-- `POST /api/intake/jobs/resume` - Resume request
+**Enterprise Teams** - Standardize architecture design process across teams with AI-powered consistency
 
-## 🎯 Key Features
+**Developers** - Learn best practices through AI-generated architectural examples and prompt strategies
 
-### Requirements to Architecture in One Flow
-Submit brief → Answer AI questions → Get extracted requirements → Pick tech stack → Generate architecture package with all agent prompts, tasks, estimates, and risks
+---
 
-### Intelligent Regeneration
-Re-run any section independently: just requirements summary, just prompts, just risk assessment, just confidence scores — full lineage preserved
+## Get Started in 3 Steps
 
-### Teaching-First Prompts
-Every architecture package includes bad vs improved prompt examples showing *why* effective prompts work better. Scored for effectiveness.
+### Step 1: Submit Your Brief
+Describe your project in a few sentences. What problem does it solve? What's your scale?
 
-### Full Async Observability
-Every step (clarify, extract, architect, regenerate) is tracked as a workflow job. Failed steps show errors with retry/skip/resume options. Full timeline on requests.
+### Step 2: Answer Questions
+Veyra asks clarifying questions about your specific needs. Answer them to provide context.
 
-### Copy-Paste Ready Exports
-PRD exports include:
-- Requirements table
-- Architecture outline per component
-- Agent task breakdown with subtasks
-- Downstream prompt per agent (ready to paste to team)
-- Risk assessment with mitigations
-- Token/cost estimates with reasoning
-- Bad vs improved prompt examples
+### Step 3: Get Your Architecture
+Review the generated architecture, export the PRD, and share with your team.
 
-### Auto-Materialized Tasks
-Agent tasks automatically create kanban cards with architecture source link, subtasks, and downstream prompt button.
+**That's it.** Your team now has a complete, AI-designed architecture to build from.
 
-## 🚀 Getting Started
+---
 
-### Prerequisites
-- Node.js 18+
-- Supabase project
-- Groq API key
+## What You Get
 
-### Setup
+- ✓ Complete system architecture
+- ✓ Technology stack recommendations
+- ✓ Implementation task breakdown
+- ✓ Role-specific team prompts
+- ✓ Risk assessment with mitigations
+- ✓ Cost and effort estimates
+- ✓ Confidence scores
+- ✓ Exportable PRD document
+- ✓ Auto-populated task board
+- ✓ Full version history
 
-```bash
-# Install
-npm install
+---
 
-# .env.local
-NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-SUPABASE_SERVICE_ROLE_KEY=...
-GROQ_API_KEY=...
+## Example: Building an E-Commerce Platform
 
-# Run
-npm run dev
-# Open http://localhost:3000
-```
+**You Submit:**
+"E-commerce platform with real-time inventory, 10K+ concurrent users"
 
-## 📊 Usage Flow
+**Veyra Asks:**
+- What's your timeline to launch?
+- Do you need real-time search?
+- What payment processors do you support?
+- Geographic distribution requirements?
 
-1. **Dashboard** → Click "New Request"
-2. **Submit Brief** → E.g. "E-commerce platform with real-time inventory"
-3. **Get Questions** → AI asks about scale, integrations, timeline
-4. **Answer Q&A** → Provide context
-5. **Extract Requirements** → AI structures them
-6. **Pick Stack** → Choose recommended architecture
-7. **Generate Architecture** → Full package with all 8 outputs
-8. **Review Prompts** → See bad vs improved examples
-9. **Export PRD** → Share with team
-10. **View Tasks** → Kanban board auto-populated with agent tasks
-11. **Track Progress** → Request list shows live status with job timeline
+**You Answer:**
+Your specific constraints and requirements
 
-## 🔍 Deployment
+**You Get:**
+- Recommended: Node.js/React frontend, PostgreSQL + Redis backend, Microservices architecture
+- 5 core components: API Gateway, Product Service, Inventory Service, Order Service, Payment Service
+- 25+ implementation tasks assigned to Frontend, Backend, DevOps, QA teams
+- Custom prompts for each team member
+- Risk assessment: Database scalability, Payment processing reliability, Real-time sync consistency
+- Token/effort estimates for implementation
 
-Configured for **Vercel**:
-```bash
-git push origin main
-# Auto-deploys to Vercel
-```
+---
 
-Environment variables in Vercel dashboard Settings → Environment Variables.
+## How It Works Behind the Scenes
 
-## 📚 Key Docs
+Veyra uses AI to:
+1. Parse and understand your requirements
+2. Analyze best practices for similar systems
+3. Evaluate technology trade-offs
+4. Generate coherent architecture
+5. Create team communication strategies
+6. Produce comprehensive documentation
 
-- [Next.js 16](https://nextjs.org/docs)
-- [Supabase](https://supabase.com/docs)
-- [Groq API](https://console.groq.com/docs)
-- [AI SDK 6](https://sdk.vercel.ai)
+All with full transparency about confidence levels and reasoning.
 
-## 📝 License
+---
+
+## FAQ
+
+**Q: Is my project data secure?**
+A: Yes. All data is encrypted and stored securely. You control what you share.
+
+**Q: Can I modify the generated architecture?**
+A: Yes. Regenerate any section, edit inline, or start over with different constraints.
+
+**Q: What if the architecture isn't right for my needs?**
+A: You can regenerate sections, try different technology stacks, or iterate on the brief.
+
+**Q: Can my whole team see the architecture?**
+A: Yes. Export the PRD and share with anyone. Tasks can also be materialized to your team's kanban board.
+
+**Q: What if something fails?**
+A: Veyra tracks all steps. Failed steps show detailed errors with options to retry or skip.
+
+---
+
+## Built For
+
+- Teams who want to move fast without sacrificing architecture quality
+- Organizations standardizing their design process
+- Developers learning architectural best practices
+- Anyone transforming ideas into implementation plans
+
+---
+
+## License
 
 MIT
 
 ---
 
-**Veyra** — From brief to architecture to prompts. Built with Vercel WDK Track 1.
+**Veyra** — From idea to architecture. Instantly.
+
