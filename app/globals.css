@@ -3,44 +3,53 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Veyra — dark-first design system */
+/* Veyra — light + orange design system (matches landing page) */
 :root {
-  /* Dark is the default */
-  --background: oklch(0.12 0.005 264);
-  --foreground: oklch(0.96 0.005 264);
-  --card: oklch(0.16 0.006 264);
-  --card-foreground: oklch(0.96 0.005 264);
-  --popover: oklch(0.16 0.006 264);
-  --popover-foreground: oklch(0.96 0.005 264);
-  /* Cyan-teal accent — brand color */
-  --primary: oklch(0.72 0.14 196);
-  --primary-foreground: oklch(0.12 0.005 264);
-  --secondary: oklch(0.20 0.008 264);
-  --secondary-foreground: oklch(0.96 0.005 264);
-  --muted: oklch(0.20 0.008 264);
-  --muted-foreground: oklch(0.60 0.008 264);
-  --accent: oklch(0.22 0.012 196);
-  --accent-foreground: oklch(0.72 0.14 196);
+  /* Surfaces */
+  --background: oklch(0.985 0 0);              /* zinc-50 */
+  --foreground: oklch(0.21 0 0);               /* zinc-900 */
+  --card: oklch(1 0 0);                        /* white */
+  --card-foreground: oklch(0.21 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.21 0 0);
+
+  /* Brand: orange-500 */
+  --primary: oklch(0.705 0.213 47.604);
+  --primary-foreground: oklch(1 0 0);
+
+  /* Neutrals */
+  --secondary: oklch(0.961 0 0);               /* zinc-100 */
+  --secondary-foreground: oklch(0.21 0 0);
+  --muted: oklch(0.961 0 0);                   /* zinc-100 */
+  --muted-foreground: oklch(0.46 0 0);         /* zinc-500 */
+  --accent: oklch(0.961 0 0);                  /* zinc-100 */
+  --accent-foreground: oklch(0.21 0 0);
+
   --destructive: oklch(0.55 0.22 27);
-  --destructive-foreground: oklch(0.96 0.005 264);
-  --border: oklch(0.24 0.008 264);
-  --input: oklch(0.20 0.008 264);
-  --ring: oklch(0.72 0.14 196);
-  --chart-1: oklch(0.72 0.14 196);
-  --chart-2: oklch(0.65 0.16 230);
-  --chart-3: oklch(0.78 0.12 160);
-  --chart-4: oklch(0.82 0.14 90);
-  --chart-5: oklch(0.68 0.18 300);
+  --destructive-foreground: oklch(1 0 0);
+
+  --border: oklch(0.92 0 0);                   /* zinc-200 */
+  --input: oklch(0.92 0 0);
+  --ring: oklch(0.705 0.213 47.604);
+
+  /* Charts (orange-led palette) */
+  --chart-1: oklch(0.705 0.213 47.604);        /* orange-500 */
+  --chart-2: oklch(0.21 0 0);                  /* zinc-900 */
+  --chart-3: oklch(0.62 0.18 45);              /* orange-600 */
+  --chart-4: oklch(0.46 0 0);                  /* zinc-500 */
+  --chart-5: oklch(0.78 0.16 60);              /* orange-400 */
+
   --radius: 0.5rem;
-  /* Sidebar */
-  --sidebar: oklch(0.14 0.006 264);
-  --sidebar-foreground: oklch(0.96 0.005 264);
-  --sidebar-primary: oklch(0.72 0.14 196);
-  --sidebar-primary-foreground: oklch(0.12 0.005 264);
-  --sidebar-accent: oklch(0.20 0.008 264);
-  --sidebar-accent-foreground: oklch(0.96 0.005 264);
-  --sidebar-border: oklch(0.22 0.007 264);
-  --sidebar-ring: oklch(0.72 0.14 196);
+
+  /* Sidebar — pure white surface */
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.21 0 0);
+  --sidebar-primary: oklch(0.705 0.213 47.604);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.961 0 0);          /* zinc-100 hover */
+  --sidebar-accent-foreground: oklch(0.21 0 0);
+  --sidebar-border: oklch(0.92 0 0);           /* zinc-200 */
+  --sidebar-ring: oklch(0.705 0.213 47.604);
 }
 
 @theme inline {

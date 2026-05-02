@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { Logo } from '@/components/logo'
 import {
   ArrowRight,
   FileText,
@@ -27,14 +28,7 @@ export default async function HomePage() {
       {/* ======================= Header ======================= */}
       <header className="sticky top-0 z-40 backdrop-blur-md bg-zinc-50/80 border-b border-zinc-200/70">
         <nav className="max-w-7xl mx-auto flex items-center justify-between px-6 lg:px-8 h-16">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center shadow-sm">
-              <Sparkles className="w-4 h-4 text-orange-500" strokeWidth={2.5} />
-            </div>
-            <span className="text-zinc-900 font-semibold text-[15px] tracking-tight">
-              Veyra
-            </span>
-          </Link>
+          <Logo size={30} href="/" />
 
           <div className="hidden md:flex items-center gap-8 text-[14px] text-zinc-600">
             <a href="#features" className="hover:text-zinc-900 transition-colors">
@@ -436,11 +430,8 @@ export default async function HomePage() {
       {/* ======================= Footer ======================= */}
       <footer className="border-t border-zinc-200 bg-zinc-50">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 rounded-md bg-zinc-900 flex items-center justify-center">
-              <Sparkles className="w-3 h-3 text-orange-500" strokeWidth={2.5} />
-            </div>
-            <span className="text-[13px] text-zinc-700 font-medium">Veyra</span>
+          <div className="flex items-center gap-3">
+            <Logo size={22} href="/" />
             <span className="text-[12px] text-zinc-400">
               built by olani.me @ 2026
             </span>

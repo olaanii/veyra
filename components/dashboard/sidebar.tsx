@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
+import { Logo } from '@/components/logo'
 import type { User } from '@supabase/supabase-js'
 import type { Profile } from '@/lib/types'
 
@@ -113,11 +114,8 @@ export function DashboardSidebar({ user, profile }: Props) {
   return (
     <aside className="w-56 flex flex-col border-r border-border bg-sidebar h-full shrink-0">
       {/* Brand */}
-      <div className="flex items-center gap-2 px-4 py-5 border-b border-sidebar-border">
-        <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center shrink-0">
-          <span className="text-primary-foreground text-xs font-bold">V</span>
-        </div>
-        <span className="text-sidebar-foreground font-semibold text-base">Veyra</span>
+      <div className="flex items-center px-4 py-5 border-b border-sidebar-border">
+        <Logo size={28} href="/dashboard" />
       </div>
 
       {/* Nav */}

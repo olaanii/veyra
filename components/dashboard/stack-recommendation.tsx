@@ -18,9 +18,9 @@ export function StackRecommendation({
   isExporting,
 }: StackRecommendationProps) {
   const riskColor = {
-    low: 'text-green-400',
-    medium: 'text-yellow-400',
-    high: 'text-red-400',
+    low: 'text-emerald-600',
+    medium: 'text-amber-600',
+    high: 'text-red-600',
   }
 
   return (
@@ -65,7 +65,7 @@ export function StackRecommendation({
                 <p className="text-muted-foreground font-medium mb-1">Pros</p>
                 <ul className="space-y-1">
                   {stack.pros?.slice(0, 2).map((pro, i) => (
-                    <li key={i} className="text-green-400">
+                    <li key={i} className="text-emerald-600">
                       + {pro}
                     </li>
                   ))}
@@ -75,7 +75,7 @@ export function StackRecommendation({
                 <p className="text-muted-foreground font-medium mb-1">Cons</p>
                 <ul className="space-y-1">
                   {stack.cons?.slice(0, 2).map((con, i) => (
-                    <li key={i} className="text-red-400">
+                    <li key={i} className="text-red-600">
                       - {con}
                     </li>
                   ))}

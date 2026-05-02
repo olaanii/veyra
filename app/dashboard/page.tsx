@@ -137,12 +137,12 @@ export default async function DashboardPage() {
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
-    active: 'bg-primary/20 text-primary',
-    completed: 'bg-green-500/20 text-green-400',
-    archived: 'bg-muted text-muted-foreground',
+    active: 'bg-orange-100 text-orange-700',
+    completed: 'bg-emerald-100 text-emerald-700',
+    archived: 'bg-zinc-100 text-zinc-600',
   }
   return (
-    <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${map[status] ?? 'bg-muted text-muted-foreground'}`}>
+    <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${map[status] ?? 'bg-zinc-100 text-zinc-600'}`}>
       {status}
     </span>
   )
@@ -150,12 +150,12 @@ function StatusBadge({ status }: { status: string }) {
 
 function PriorityBadge({ priority }: { priority: string }) {
   const map: Record<string, string> = {
-    high: 'bg-red-500/20 text-red-400',
-    medium: 'bg-yellow-500/20 text-yellow-400',
-    low: 'bg-muted text-muted-foreground',
+    high: 'bg-red-100 text-red-700',
+    medium: 'bg-amber-100 text-amber-700',
+    low: 'bg-zinc-100 text-zinc-600',
   }
   return (
-    <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${map[priority] ?? 'bg-muted text-muted-foreground'}`}>
+    <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${map[priority] ?? 'bg-zinc-100 text-zinc-600'}`}>
       {priority}
     </span>
   )

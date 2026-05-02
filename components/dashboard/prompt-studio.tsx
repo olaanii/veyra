@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import type { PromptTemplate } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Logo } from '@/components/logo'
 import { cn } from '@/lib/utils'
 
 const CATEGORIES = ['general', 'code', 'analysis', 'writing', 'research', 'testing']
@@ -192,8 +193,8 @@ export function PromptStudio({ initialTemplates, userId }: Props) {
             <h3 className="text-sm font-semibold text-foreground">Prompt quality checklist</h3>
             <span className={cn(
               'text-xs px-2 py-0.5 rounded-full font-medium',
-              checklistScore >= 4 ? 'bg-green-500/20 text-green-400' :
-              checklistScore >= 2 ? 'bg-yellow-500/20 text-yellow-400' :
+              checklistScore >= 4 ? 'bg-emerald-100 text-emerald-700' :
+              checklistScore >= 2 ? 'bg-amber-100 text-amber-700' :
               'bg-muted text-muted-foreground'
             )}>
               {checklistScore}/{PROMPT_CHECKLIST.length}
@@ -227,9 +228,7 @@ export function PromptStudio({ initialTemplates, userId }: Props) {
         {analysis && (
           <div className="bg-accent border border-primary/20 rounded-lg p-5 space-y-2">
             <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                <span className="text-xs text-primary font-bold">V</span>
-              </div>
+              <Logo variant="icon" size={18} href={null} />
               <h3 className="text-sm font-semibold text-foreground">Veyra Analysis</h3>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{analysis}</p>

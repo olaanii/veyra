@@ -18,10 +18,10 @@ export function RequirementsDisplay({ requirements, onEdit }: RequirementsDispla
   )
 
   const priorityColor = {
-    low: 'bg-blue-500/20 text-blue-300',
-    medium: 'bg-yellow-500/20 text-yellow-300',
-    high: 'bg-orange-500/20 text-orange-300',
-    critical: 'bg-red-500/20 text-red-300',
+    low: 'bg-blue-100 text-blue-700',
+    medium: 'bg-amber-100 text-amber-700',
+    high: 'bg-orange-100 text-orange-700',
+    critical: 'bg-red-100 text-red-700',
   }
 
   return (

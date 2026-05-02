@@ -13,13 +13,13 @@ type Priority = Task['priority']
 const COLUMNS: { id: Status; label: string; color: string }[] = [
   { id: 'todo', label: 'To Do', color: 'border-border' },
   { id: 'in_progress', label: 'In Progress', color: 'border-primary/50' },
-  { id: 'blocked', label: 'Blocked', color: 'border-red-500/40' },
-  { id: 'done', label: 'Done', color: 'border-green-500/40' },
+  { id: 'blocked', label: 'Blocked', color: 'border-red-300' },
+  { id: 'done', label: 'Done', color: 'border-emerald-300' },
 ]
 
 const PRIORITY_COLORS: Record<Priority, string> = {
-  high: 'text-red-400 bg-red-500/10',
-  medium: 'text-yellow-400 bg-yellow-500/10',
+  high: 'text-red-700 bg-red-100',
+  medium: 'text-amber-700 bg-amber-100',
   low: 'text-muted-foreground bg-muted',
 }
 

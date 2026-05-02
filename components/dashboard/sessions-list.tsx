@@ -48,7 +48,7 @@ export function SessionsList({ initialSessions, userId }: Props) {
 
   const statusColor: Record<string, string> = {
     active: 'text-primary bg-primary/15',
-    completed: 'text-green-400 bg-green-500/15',
+    completed: 'text-emerald-700 bg-emerald-100',
     archived: 'text-muted-foreground bg-muted',
   }
 

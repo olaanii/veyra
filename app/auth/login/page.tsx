@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Logo } from '@/components/logo'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -33,11 +34,8 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm space-y-8">
         <div className="space-y-2">
-          <div className="flex items-center gap-2 mb-6">
-            <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground text-xs font-bold">V</span>
-            </div>
-            <span className="text-foreground font-semibold text-lg">Veyra</span>
+          <div className="flex items-center mb-6">
+            <Logo size={32} href="/" />
           </div>
           <h1 className="text-2xl font-semibold text-foreground tracking-tight">Welcome back</h1>
           <p className="text-muted-foreground text-sm">Sign in to your agent workbench</p>

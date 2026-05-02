@@ -129,7 +129,7 @@ export function ArchitectBuilder() {
                 <div className="flex flex-col items-center shrink-0 mt-1">
                   <div className={cn(
                     'w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-bold',
-                    step.status === 'done' ? 'bg-green-500/20 border-green-500/50 text-green-400' :
+                    step.status === 'done' ? 'bg-emerald-100 border-emerald-300 text-emerald-700' :
                     step.status === 'active' ? 'bg-primary/20 border-primary text-primary' :
                     'bg-muted border-border text-muted-foreground',
                   )}>

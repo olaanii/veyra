@@ -15,8 +15,8 @@ const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
 const STATUS_COLORS: Record<string, string> = {
   running: 'bg-primary/20 text-primary border-primary/30',
-  completed: 'bg-green-500/15 text-green-400 border-green-500/30',
-  failed: 'bg-destructive/15 text-red-400 border-destructive/30',
+  completed: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  failed: 'bg-red-100 text-red-700 border-red-200',
   cancelled: 'bg-muted text-muted-foreground border-border',
 }
 
