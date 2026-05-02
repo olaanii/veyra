@@ -41,109 +41,178 @@ export default async function DashboardPage() {
   ]
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight">Overview</h1>
-          <p className="text-muted-foreground text-sm mt-1">AI-powered architecture & workflow design</p>
-        </div>
-        <Link
-          href="/dashboard/intake"
-          className="text-sm bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
-        >
-          New Request
-        </Link>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {stats.map((s) => (
+    <div className="p-8 max-w-6xl mx-auto space-y-8">
+      {/* Hero Section - Large CTA for New Request */}
+      <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-lg p-8 md:p-12">
+        <div className="max-w-2xl">
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight mb-3">
+            Transform Your Ideas Into Production Architecture
+          </h1>
+          <p className="text-muted-foreground text-lg mb-6">
+            Submit a project brief. Get clarifying questions. Build architecture. Generate team prompts. Auto-materialize tasks.
+          </p>
           <Link
-            key={s.label}
-            href={s.href}
-            className="bg-card border border-border rounded-lg p-5 hover:border-primary/40 transition-colors"
+            href="/dashboard/intake"
+            className="inline-block bg-primary text-primary-foreground px-6 py-3 rounded-md font-medium hover:bg-primary/90 transition-colors"
           >
-            <p className="text-3xl font-semibold text-foreground">{s.value}</p>
-            <p className="text-sm text-muted-foreground mt-1">{s.label}</p>
+            Start New Request
           </Link>
-        ))}
-      </div>
-
-      {/* Recent Requests + Sessions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Recent Requests */}
-        <div className="bg-card border border-border rounded-lg p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-foreground">Recent Requests</h2>
-            <Link href="/dashboard/requests" className="text-xs text-primary hover:underline underline-offset-4">View all</Link>
-          </div>
-          {recentRequests && recentRequests.length > 0 ? (
-            <ul className="space-y-2">
-              {recentRequests.map((r: any) => (
-                <li key={r.id}>
-                  <Link
-                    href={`/dashboard/intake?requestId=${r.id}`}
-                    className="flex items-center justify-between px-3 py-2 rounded-md hover:bg-secondary transition-colors group"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <span className="text-sm text-foreground truncate group-hover:text-primary transition-colors block">{r.title}</span>
-                      <span className="text-xs text-muted-foreground">{r.brief?.substring(0, 40)}</span>
-                    </div>
-                    <RequestStatusBadge status={r.status} />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <EmptyState label="No requests yet" action={{ label: 'Create one', href: '/dashboard/intake' }} />
-          )}
-        </div>
-
-        {/* Recent Sessions */}
-        <div className="bg-card border border-border rounded-lg p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-foreground">Recent Sessions</h2>
-            <Link href="/dashboard/sessions" className="text-xs text-primary hover:underline underline-offset-4">View all</Link>
-          </div>
-          {recentSessions && recentSessions.length > 0 ? (
-            <ul className="space-y-2">
-              {recentSessions.map((s) => (
-                <li key={s.id}>
-                  <Link
-                    href={`/dashboard/sessions/${s.id}`}
-                    className="flex items-center justify-between px-3 py-2 rounded-md hover:bg-secondary transition-colors group"
-                  >
-                    <span className="text-sm text-foreground truncate group-hover:text-primary transition-colors">{s.title}</span>
-                    <StatusBadge status={s.status} />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <EmptyState label="No sessions yet" action={{ label: 'Start one', href: '/dashboard/sessions' }} />
-          )}
         </div>
       </div>
 
-      {/* Quick links */}
-      <div className="border border-border rounded-lg p-5">
-        <h2 className="text-sm font-semibold text-foreground mb-4">Quick access</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {[
-            { label: 'Architecture Intake', desc: 'Start new request workflow', href: '/dashboard/intake' },
-            { label: 'View Requests', desc: 'Manage all architecture requests', href: '/dashboard/requests' },
-            { label: 'Task Board', desc: 'Kanban for agent tasks', href: '/dashboard/tasks' },
-          ].map((q) => (
+      {/* Progress Section - Workflow Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-card border border-border rounded-lg p-6">
+          <div className="flex items-start justify-between mb-3">
+            <div>
+              <p className="text-sm text-muted-foreground font-medium">In Progress</p>
+              <p className="text-3xl font-bold text-foreground mt-2">{recentRequests?.filter((r: any) => ['analyzing', 'extracting', 'generating'].includes(r.status)).length ?? 0}</p>
+            </div>
+            <div className="w-10 h-10 rounded-md bg-blue-100 flex items-center justify-center">
+              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">Active workflow executions</p>
+        </div>
+
+        <div className="bg-card border border-border rounded-lg p-6">
+          <div className="flex items-start justify-between mb-3">
+            <div>
+              <p className="text-sm text-muted-foreground font-medium">Completed</p>
+              <p className="text-3xl font-bold text-foreground mt-2">{recentRequests?.filter((r: any) => r.status === 'finalized').length ?? 0}</p>
+            </div>
+            <div className="w-10 h-10 rounded-md bg-emerald-100 flex items-center justify-center">
+              <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">Architectures generated</p>
+        </div>
+
+        <div className="bg-card border border-border rounded-lg p-6">
+          <div className="flex items-start justify-between mb-3">
+            <div>
+              <p className="text-sm text-muted-foreground font-medium">Active Tasks</p>
+              <p className="text-3xl font-bold text-foreground mt-2">{activeTasks?.length ?? 0}</p>
+            </div>
+            <div className="w-10 h-10 rounded-md bg-orange-100 flex items-center justify-center">
+              <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">From materialized tasks</p>
+        </div>
+      </div>
+
+      {/* Recent Requests - Active Workflows */}
+      <div className="bg-card border border-border rounded-lg p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">Recent Requests</h2>
+            <p className="text-sm text-muted-foreground">Your active and completed workflows</p>
+          </div>
+          <Link href="/dashboard/requests" className="text-sm text-primary hover:underline underline-offset-4">View all</Link>
+        </div>
+        {recentRequests && recentRequests.length > 0 ? (
+          <div className="space-y-3">
+            {recentRequests.map((r: any) => (
+              <Link
+                key={r.id}
+                href={`/dashboard/intake?requestId=${r.id}`}
+                className="flex items-center justify-between p-4 rounded-md border border-border hover:border-primary/50 hover:bg-accent transition-all group"
+              >
+                <div className="flex-1">
+                  <p className="font-medium text-foreground group-hover:text-primary transition-colors">{r.title}</p>
+                  <p className="text-sm text-muted-foreground">{r.brief?.substring(0, 60)}</p>
+                </div>
+                <div className="text-right">
+                  <RequestStatusBadge status={r.status} />
+                  <p className="text-xs text-muted-foreground mt-1">{new Date(r.updated_at).toLocaleDateString()}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground mb-3">No requests yet. Start by creating a new one.</p>
             <Link
-              key={q.href}
-              href={q.href}
-              className="flex flex-col px-4 py-3 rounded-md border border-border hover:border-primary/50 hover:bg-accent transition-colors"
+              href="/dashboard/intake"
+              className="text-sm text-primary hover:underline underline-offset-4 font-medium"
             >
-              <span className="text-sm font-medium text-foreground">{q.label}</span>
-              <span className="text-xs text-muted-foreground mt-0.5">{q.desc}</span>
+              Create a request
             </Link>
-          ))}
+          </div>
+        )}
+      </div>
+
+      {/* Active Tasks + Quick Links */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Active Tasks */}
+        <div className="bg-card border border-border rounded-lg p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-foreground">Active Tasks</h2>
+          {activeTasks && activeTasks.length > 0 ? (
+            <div className="space-y-3">
+              {activeTasks.slice(0, 3).map((t: any) => (
+                <div key={t.id} className="flex items-center gap-3 p-3 rounded-md bg-secondary/30 border border-border/50">
+                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{t.title}</p>
+                    <p className="text-xs text-muted-foreground">{t.description?.substring(0, 40)}</p>
+                  </div>
+                </div>
+              ))}
+              <Link href="/dashboard/tasks" className="text-sm text-primary hover:underline underline-offset-4">View all tasks</Link>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No active tasks. Complete a request to materialize tasks.</p>
+          )}
+        </div>
+
+        {/* Quick Workflows */}
+        <div className="bg-card border border-border rounded-lg p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-foreground">Next Steps</h2>
+          <div className="space-y-2">
+            <Link
+              href="/dashboard/intake"
+              className="flex items-center gap-3 p-3 rounded-md border border-border hover:border-primary/50 hover:bg-accent transition-colors"
+            >
+              <svg className="w-5 h-5 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <div className="text-sm">
+                <p className="font-medium text-foreground">New Request</p>
+                <p className="text-xs text-muted-foreground">Start architecture workflow</p>
+              </div>
+            </Link>
+            <Link
+              href="/dashboard/sessions"
+              className="flex items-center gap-3 p-3 rounded-md border border-border hover:border-primary/50 hover:bg-accent transition-colors"
+            >
+              <svg className="w-5 h-5 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <div className="text-sm">
+                <p className="font-medium text-foreground">Refinement</p>
+                <p className="text-xs text-muted-foreground">Iterate on architectures</p>
+              </div>
+            </Link>
+            <Link
+              href="/dashboard/tasks"
+              className="flex items-center gap-3 p-3 rounded-md border border-border hover:border-primary/50 hover:bg-accent transition-colors"
+            >
+              <svg className="w-5 h-5 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+              <div className="text-sm">
+                <p className="font-medium text-foreground">Implementation</p>
+                <p className="text-xs text-muted-foreground">Auto-materialized tasks</p>
+              </div>
+            </Link>
+          </div>
         </div>
       </div>
     </div>
