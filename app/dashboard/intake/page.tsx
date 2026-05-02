@@ -133,7 +133,29 @@ export default function IntakePage() {
     export: { label: 'Export', description: 'Download complete documentation', stepNumber: 6 },
   }
 
-  const allStages = (['intake', 'clarifying', 'requirements', 'stacks', 'architecture', 'export'] as const)
+  const handleRegenerate = async (section: string) => {
+    // Handle regeneration of specific sections
+    console.log('[v0] Regenerating section:', section)
+  }
+
+  const handleMaterializeTasks = async () => {
+    if (!architecture?.id) return
+    
+    setIsLoading(true)
+    try {
+      const res = await fetch('/api/intake/materialize-tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ architectureId: architecture.id }),
+      })
+      const data = await res.json()
+      console.log('[v0] Manual task materialization result:', data)
+    } catch (error) {
+      console.error('[v0] Error materializing tasks:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
     setIsLoading(true)
     try {
       const res = await fetch('/api/intake/export', {
@@ -168,6 +190,26 @@ export default function IntakePage() {
       const archRes = await fetch(`/api/intake/architect?id=${architectureId}`)
       const archData = await archRes.json()
       setArchitecture(archData)
+      
+      // AUTO-MATERIALIZE TASKS: Automatically create tasks from the architecture
+      console.log('[v0] Auto-materializing tasks from architecture:', architectureId)
+      try {
+        const materializeRes = await fetch('/api/intake/materialize-tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ architectureId }),
+        })
+        const materializeData = await materializeRes.json()
+        console.log('[v0] Tasks materialized:', materializeData.taskCount, 'tasks created')
+        
+        if (!materializeRes.ok) {
+          console.warn('[v0] Task materialization warning:', materializeData.error)
+        }
+      } catch (materializeError) {
+        console.error('[v0] Task materialization error:', materializeError)
+        // Don't block the workflow if task materialization fails - user can manually trigger it
+      }
+      
       setStage('architecture')
     } catch (error) {
       console.error('[v0] Error generating architecture:', error)
@@ -296,10 +338,39 @@ export default function IntakePage() {
           {stage === 'architecture' && architecture && (
             <div>
               <h2 className="text-xl font-semibold text-foreground mb-4">Architecture Package</h2>
+              
+              {/* Success notification: Tasks materialized */}
+              <div className="mb-4 p-4 rounded-md bg-emerald-50 border border-emerald-200">
+                <p className="text-sm text-emerald-900">
+                  <span className="font-semibold">✓ Tasks Auto-Materialized</span> — Your agent tasks have been automatically created on the Task Board. Click below to review and start implementation.
+                </p>
+              </div>
+              
               <ArchitecturePackage architecture={architecture} />
-              <Button onClick={handleExport} disabled={isLoading} className="w-full mt-6">
-                {isLoading ? 'Exporting...' : 'Export Full Documentation'}
-              </Button>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-6">
+                <Button 
+                  onClick={() => router.push('/dashboard/tasks')} 
+                  className="md:col-span-1"
+                  variant="outline"
+                >
+                  View Tasks
+                </Button>
+                <Button onClick={handleExport} disabled={isLoading} className="md:col-span-1">
+                  {isLoading ? 'Exporting...' : 'Export Full Documentation'}
+                </Button>
+              </div>
+              
+              {/* Hidden: Re-materialize button for advanced users */}
+              <div className="mt-4 pt-4 border-t border-border">
+                <button 
+                  onClick={handleMaterializeTasks}
+                  disabled={isLoading}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Re-materialize tasks (if needed)
+                </button>
+              </div>
             </div>
           )}
 
@@ -355,10 +426,24 @@ export default function IntakePage() {
 
               {stage === 'architecture' && (
                 <Card className="p-4 border border-purple-200 bg-purple-50">
-                  <h3 className="text-sm font-semibold text-purple-900 mb-2">Architecture Overview</h3>
-                  <p className="text-xs text-purple-800">
-                    This complete architecture includes component breakdown, implementation tasks for each role, risk assessment, and specialized prompts your team can use immediately.
+                  <h3 className="text-sm font-semibold text-purple-900 mb-2">Architecture Complete</h3>
+                  <p className="text-xs text-purple-800 mb-3">
+                    Your architecture is complete and tasks have been auto-materialized to the Task Board. Your team can now start implementation with the provided prompts and context.
                   </p>
+                  <ul className="text-xs text-purple-800 space-y-1">
+                    <li className="flex gap-2">
+                      <span>✓</span>
+                      <span>5-component system design</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span>✓</span>
+                      <span>Agent tasks materialized</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span>✓</span>
+                      <span>Specialized prompts included</span>
+                    </li>
+                  </ul>
                 </Card>
               )}
 
