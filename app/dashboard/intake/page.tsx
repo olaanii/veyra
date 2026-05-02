@@ -61,16 +61,22 @@ export default function IntakePage() {
         body: JSON.stringify({ requestId: newRequest.id }),
       })
       const { questions: clarifyQuestions } = await clarifyRes.json()
-      setQuestions(
-        clarifyQuestions.map((q: any) => ({
-          request_id: newRequest.id,
-          user_id: '',
-          question: q.question,
-          category: q.category,
-          answer: null,
-        })),
-      )
-      setStage('clarifying')
+      if (clarifyQuestions && Array.isArray(clarifyQuestions)) {
+        setQuestions(
+          clarifyQuestions.map((q: any) => ({
+            request_id: newRequest.id,
+            user_id: '',
+            question: q.question,
+            category: q.category,
+            answer: null,
+          })),
+        )
+        setStage('clarifying')
+      } else {
+        console.error('[v0] No clarifying questions returned from API')
+        // Skip clarifying and go straight to requirements if no questions
+        setStage('requirements')
+      }
     } catch (error) {
       console.error('Error:', error)
     } finally {
