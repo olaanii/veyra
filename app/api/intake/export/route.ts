@@ -1,35 +1,44 @@
 import { createClient } from '@/lib/supabase/server'
+import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export async function POST(req: NextRequest) {
-  const { requestId, format } = await req.json()
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  try {
+    const { requestId, format } = await req.json()
+    const supabase = await createClient()
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
 
-  if (!user) return new Response('Unauthorized', { status: 401 })
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-  const { data: request } = await supabase
-    .from('requests')
-    .select()
-    .eq('id', requestId)
-    .single()
+    const { data: request, error: reqError } = await supabase
+      .from('requests')
+      .select('*')
+      .eq('id', requestId)
+      .eq('user_id', user.id)
+      .single()
 
-  if (!request || request.user_id !== user.id) return new Response('Forbidden', { status: 403 })
+    if (reqError || !request) {
+      return NextResponse.json({ error: 'Request not found' }, { status: 404 })
+    }
 
-  const { data: requirements } = await supabase
-    .from('requirements')
-    .select()
-    .eq('request_id', requestId)
+    const { data: requirements } = await supabase
+      .from('requirements')
+      .select('*')
+      .eq('request_id', requestId)
 
-  const { data: stacks } = await supabase
-    .from('stack_options')
-    .select()
-    .eq('request_id', requestId)
+    const { data: architecture } = await supabase
+      .from('architecture_packages')
+      .select('*')
+      .eq('request_id', requestId)
+      .order('created_at', { ascending: false })
+      .limit(1)
 
-  let content = ''
+    let content = ''
 
-  if (format === 'markdown') {
-    content = `# ${request.title}
+    if (format === 'markdown') {
+      content = `# ${request.title}
 
 ## Overview
 ${request.description}
@@ -37,31 +46,180 @@ ${request.description}
 ${request.goal ? `### Goal\n${request.goal}\n` : ''}
 
 ## Requirements
-${requirements?.map((r: any) => `- [${r.priority.toUpperCase()}] ${r.title}: ${r.description}`).join('\n') || 'No requirements'}
+${
+  requirements && requirements.length > 0
+    ? requirements
+        .map(
+          (r: any) => `### ${r.title}
+- **Priority:** ${r.priority}
+- **Type:** ${r.type}
+- ${r.description}`,
+        )
+        .join('\n\n')
+    : 'No requirements extracted'
+}
 
-## Recommended Technology Stacks
-${stacks?.map((s: any) => `### ${s.title}\n${s.description}\n\n**Pros:** ${s.pros.join(', ')}\n\n**Cons:** ${s.cons.join(', ')}`).join('\n\n') || 'No stacks'}
+## Architecture Package
+${
+  architecture
+    ? `
+### Selected Stack
+**${architecture.selected_stack_name}**
+
+### Requirements Summary
+${architecture.requirements_summary || 'No summary available'}
+
+### Architecture Outline
+
+${
+  architecture.architecture_outline
+    ? Object.entries(architecture.architecture_outline)
+        .map(([component, details]: [string, any]) => {
+          return `#### ${component.charAt(0).toUpperCase() + component.slice(1)}
+${details.description}
+
+**Technologies:** ${details.key_technologies?.join(', ') || 'N/A'}
+
+**Responsibilities:**
+${details.responsibilities?.map((r: string) => `- ${r}`).join('\n') || '- N/A'}`
+        })
+        .join('\n\n')
+    : 'No architecture outline'
+}
+
+### Agent Tasks & Implementation Plan
+
+${
+  architecture.agent_tasks
+    ? (architecture.agent_tasks as any[])
+        .map(
+          (task: any) => `#### ${task.agent.charAt(0).toUpperCase() + task.agent.slice(1)} - ${task.title}
+${task.description}
+
+**Subtasks:**
+${(task.subtasks || []).map((st: string) => `- ${st}`).join('\n')}
+
+**Estimates:** ${task.estimated_hours} hours, ~${task.estimated_tokens} tokens`,
+        )
+        .join('\n\n')
+    : 'No tasks'
+}
+
+### Downstream Prompts
+
+${
+  architecture.downstream_prompts
+    ? Object.entries(architecture.downstream_prompts)
+        .filter(([, prompt]: [string, any]) => prompt && prompt.length > 0)
+        .map(
+          ([agent, prompt]: [string, any]) =>
+            `#### ${agent.charAt(0).toUpperCase() + agent.slice(1)} Engineer Prompt\n\`\`\`\n${prompt}\n\`\`\``,
+        )
+        .join('\n\n')
+    : 'No prompts'
+}
+
+### Risk Assessment
+
+${
+  architecture.risk_assessment
+    ? `
+**Identified Risks:**
+${(architecture.risk_assessment as any).risks
+  ?.map((r: any) => `- ${r.risk} (Likelihood: ${r.likelihood}, Impact: ${r.impact})`)
+  .join('\n') || '- None'}
+
+**Unknowns:**
+${(architecture.risk_assessment as any).unknowns?.map((u: string) => `- ${u}`).join('\n') || '- None'}
+
+**Mitigations:**
+${(architecture.risk_assessment as any).mitigations?.map((m: string) => `- ${m}`).join('\n') || '- None'}
 `
-  } else {
-    content = JSON.stringify(
-      { request, requirements, stacks },
-      null,
-      2,
+    : 'No risk assessment'
+}
+
+### Estimates & Costs
+
+- **Total Tokens:** ${(architecture.estimates as any)?.total_tokens || 0}
+- **Estimated Cost:** \$${(architecture.estimates as any)?.estimated_cost || '0'}
+- **Reasoning:** ${(architecture.estimates as any)?.reasoning || 'N/A'}
+
+### Confidence Scores
+
+${
+  architecture.confidence_scores
+    ? Object.entries(architecture.confidence_scores)
+        .map(([component, score]: [string, any]) => `- ${component}: ${Math.round(score)}%`)
+        .join('\n')
+    : 'N/A'
+}
+
+### Prompt Teaching Examples
+
+**Bad Examples to Avoid:**
+${
+  architecture.prompt_examples && (architecture.prompt_examples as any).bad_examples
+    ? (architecture.prompt_examples as any).bad_examples
+        .map((ex: any) => `- ${(ex.issues || [])[0] || 'Issue not specified'}`)
+        .join('\n')
+    : '- None'
+}
+
+**Improved Approaches:**
+${
+  architecture.prompt_examples && (architecture.prompt_examples as any).improved_examples
+    ? (architecture.prompt_examples as any).improved_examples
+        .map((ex: any) => `- ${(ex.improvements || [])[0] || 'Improvement not specified'}`)
+        .join('\n')
+    : '- None'
+}
+`
+    : '## No Architecture Package Generated\nPlease complete the architecture generation step.'
+}
+
+---
+
+*Generated by Veyra on ${new Date().toISOString()}*
+`
+    } else {
+      content = JSON.stringify(
+        {
+          request,
+          requirements,
+          architecture,
+        },
+        null,
+        2,
+      )
+    }
+
+    const { data, error } = await supabase
+      .from('exports')
+      .insert({
+        request_id: requestId,
+        user_id: user.id,
+        format,
+        content,
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('[v0] Export error:', error)
+      return NextResponse.json({ error: 'Failed to create export' }, { status: 500 })
+    }
+
+    await supabase
+      .from('requests')
+      .update({ status: 'finalized' })
+      .eq('id', requestId)
+
+    return NextResponse.json({ export: data })
+  } catch (error) {
+    console.error('[v0] Export endpoint error:', error)
+    return NextResponse.json(
+      { error: 'Failed to generate export' },
+      { status: 500 }
     )
   }
-
-  const { data, error } = await supabase
-    .from('exports')
-    .insert({ request_id: requestId, user_id: user.id, format, content })
-    .select()
-    .single()
-
-  if (error) return Response.json({ error: error.message }, { status: 400 })
-
-  await supabase
-    .from('requests')
-    .update({ status: 'finalized' })
-    .eq('id', requestId)
-
-  return Response.json({ export: data })
 }
